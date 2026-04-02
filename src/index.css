@@ -14,9 +14,9 @@ button, input { font: inherit; }
 .card { background: rgba(12, 19, 39, 0.88); border: 1px solid rgba(125, 149, 255, 0.18); border-radius: 24px; padding: 1.5rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28); }
 .hero h1 { font-size: clamp(2rem, 5vw, 3.75rem); line-height: 1.02; margin: 0.25rem 0 1rem; max-width: 12ch; }
 .eyebrow { text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.75rem; color: #8ea4ff; }
-.actions, .inline-fields, .toolbar { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: space-between; align-items: center; }
-.inline-fields { gap: 2rem; align-items: flex-end; }
-.field { display: flex; flex-direction: column; gap: 0.35rem; margin: 1rem 0; flex: 1 1 320px; }
+.actions, .toolbar { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: space-between; align-items: center; }
+.inline-fields { display: grid; grid-template-columns: repeat(2, minmax(220px, 320px)); gap: 1.25rem; align-items: end; justify-content: start; }
+.field { display: flex; flex-direction: column; gap: 0.35rem; margin: 1rem 0; }
 .field input { border-radius: 14px; border: 1px solid rgba(143, 165, 255, 0.2); background: rgba(255,255,255,0.04); color: white; padding: 0.85rem 1rem; width: 100%; min-width: 0; }
 .button { display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 999px; padding: 0.9rem 1.35rem; color: white; background: linear-gradient(135deg, #5d72ff, #7d4dff); cursor: pointer; font-weight: 700; }
 .button.secondary { background: rgba(255,255,255,0.08); }
@@ -41,8 +41,8 @@ th, td { text-align: left; padding: 0.85rem 0.75rem; border-bottom: 1px solid rg
 code { display: block; overflow-wrap: anywhere; margin-top: 0.5rem; }
 .auth-shell { display: grid; place-items: center; min-height: 100vh; }
 .auth-card { width: min(520px, 100%); }
-.action-row { display: flex; gap: 1.25rem; align-items: center; flex-wrap: wrap; margin-top: 0.5rem; }
+.action-row { display: flex; gap: 1.5rem; align-items: center; justify-content: flex-start; flex-wrap: wrap; margin-top: 0.5rem; }
 .checkbox-row, .rules-list { margin: 0.5rem 0; }
-.checkbox-row { display: inline-flex; align-items: center; gap: 0.55rem; }
+.checkbox-row { display: inline-flex; align-items: center; gap: 0.55rem; max-width: 320px; }
 .link { display: inline-block; margin-top: 1rem; color: #a6b7ff; }
-@media (max-width: 800px) { .sticky-header { flex-direction: column; } .action-row { align-items: stretch; } }
+@media (max-width: 800px) { .sticky-header { flex-direction: column; } .inline-fields { grid-template-columns: 1fr; } .action-row { align-items: stretch; } }
