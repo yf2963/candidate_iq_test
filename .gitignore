@@ -11,6 +11,12 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
+.env.*
+!*.env.example
+data/iq-test.db
+data/iq-test.db-shm
+data/iq-test.db-wal
 
 # Editor directories and files
 .vscode/*
