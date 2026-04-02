@@ -62,6 +62,7 @@ export default function CandidatePage() {
       const active = Boolean(document.fullscreenElement);
       setFullscreenOk(active);
       if (started && !active) void api(`/test/${token}/event`, { method: 'POST', body: JSON.stringify({ type: 'fullscreen_exit' }) });
+      if (started && active) void api(`/test/${token}/event`, { method: 'POST', body: JSON.stringify({ type: 'fullscreen_return' }) });
     };
 
     document.addEventListener('visibilitychange', handleVisibility);
@@ -101,7 +102,7 @@ export default function CandidatePage() {
   if (testQuery.error) return <main className="shell"><section className="card"><p className="error">{(testQuery.error as Error).message}</p></section></main>;
 
   if (submitted && result) {
-    return <main className="shell"><section className="card"><h1>Test submitted</h1><p>Your responses were recorded.</p><p><strong>Score:</strong> {result.score} / 80 ({result.percent}%)</p></section></main>;
+    return <main className="shell"><section className="card"><h1>Assessment submitted</h1><p>Thank you for completing the assessment. Our team will review your submission and be in touch regarding next steps.</p></section></main>;
   }
 
   return (
