@@ -79,6 +79,8 @@ type CandidateSessionRow = {
   tab_switches: number;
   copy_events: number;
   fullscreen_exits: number;
+  last_fullscreen_exit_at?: string | null;
+  total_fullscreen_away_seconds?: number;
 };
 
 function adminAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
@@ -114,6 +116,8 @@ function initDb() {
       tab_switches INTEGER NOT NULL DEFAULT 0,
       copy_events INTEGER NOT NULL DEFAULT 0,
       fullscreen_exits INTEGER NOT NULL DEFAULT 0,
+      last_fullscreen_exit_at TEXT,
+      total_fullscreen_away_seconds INTEGER NOT NULL DEFAULT 0,
       flagged INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
@@ -143,6 +147,12 @@ function initDb() {
   const names = new Set(cols.map((c) => c.name));
   if (!names.has('fullscreen_exits')) {
     db.exec(`ALTER TABLE candidate_sessions ADD COLUMN fullscreen_exits INTEGER NOT NULL DEFAULT 0`);
+  }
+  if (!names.has('last_fullscreen_exit_at')) {
+    db.exec(`ALTER TABLE candidate_sessions ADD COLUMN last_fullscreen_exit_at TEXT`);
+  }
+  if (!names.has('total_fullscreen_away_seconds')) {
+    db.exec(`ALTER TABLE candidate_sessions ADD COLUMN total_fullscreen_away_seconds INTEGER NOT NULL DEFAULT 0`);
   }
 }
 
@@ -247,19 +257,13 @@ app.get('/api/admin/me', adminAuth, (_req, res) => {
 app.get('/api/admin/summary', adminAuth, (_req, res) => {
   const sessions = db
     .prepare(
-      `SELECT candidate_name, candidate_email, status, score, percent, completed_at, tab_switches, copy_events, fullscreen_exits, flagged
+      `SELECT candidate_name, candidate_email, status, score, percent, completed_at, tab_switches, copy_events, fullscreen_exits, total_fullscreen_away_seconds, flagged
        FROM candidate_sessions
        ORDER BY COALESCE(score, -1) DESC, completed_at DESC`
     )
     .all();
 
-  const events = db
-    .prepare(
-      `SELECT session_id, event_type, payload, created_at FROM session_events ORDER BY created_at DESC LIMIT 200`
-    )
-    .all();
-
-  res.json({ config: { durationSeconds: TEST_DURATION_SECONDS, questionCount: QUESTION_COUNT }, sessions, events });
+  res.json({ config: { durationSeconds: TEST_DURATION_SECONDS, questionCount: QUESTION_COUNT }, sessions });
 });
 
 app.post('/api/admin/candidates', adminAuth, async (req, res) => {
@@ -358,7 +362,16 @@ app.post('/api/test/:token/event', (req, res) => {
 
   if (type === 'tab_switch') db.prepare(`UPDATE candidate_sessions SET tab_switches = tab_switches + 1, flagged = 1, updated_at = ? WHERE id = ?`).run(createdAt, session.id);
   if (type === 'copy_attempt' || type === 'paste_attempt' || type === 'right_click') db.prepare(`UPDATE candidate_sessions SET copy_events = copy_events + 1, flagged = 1, updated_at = ? WHERE id = ?`).run(createdAt, session.id);
-  if (type === 'fullscreen_exit') db.prepare(`UPDATE candidate_sessions SET fullscreen_exits = fullscreen_exits + 1, flagged = 1, updated_at = ? WHERE id = ?`).run(createdAt, session.id);
+  if (type === 'fullscreen_exit') {
+    db.prepare(`UPDATE candidate_sessions SET fullscreen_exits = fullscreen_exits + 1, last_fullscreen_exit_at = ?, flagged = 1, updated_at = ? WHERE id = ?`).run(createdAt, createdAt, session.id);
+  }
+  if (type === 'fullscreen_return') {
+    const latest = getSessionByToken(req.params.token);
+    if (latest?.last_fullscreen_exit_at) {
+      const awaySeconds = Math.max(0, Math.round((new Date(createdAt).getTime() - new Date(latest.last_fullscreen_exit_at).getTime()) / 1000));
+      db.prepare(`UPDATE candidate_sessions SET total_fullscreen_away_seconds = total_fullscreen_away_seconds + ?, last_fullscreen_exit_at = NULL, updated_at = ? WHERE id = ?`).run(awaySeconds, createdAt, session.id);
+    }
+  }
 
   res.json({ ok: true });
 });
@@ -394,11 +407,45 @@ app.post('/api/test/:token/submit', (req, res) => {
   const late = Date.now() > deadline;
   const finalFlagged = late ? 1 : 0;
 
-  db.prepare(
-    `UPDATE candidate_sessions SET status = 'completed', score = ?, raw_score = ?, percent = ?, completed_at = ?, consumed_at = ?, flagged = CASE WHEN flagged = 1 OR ? = 1 THEN 1 ELSE 0 END, updated_at = ? WHERE id = ?`
-  ).run(score, rawScore, percent, completedAt, consumedAt, finalFlagged, completedAt, session.id);
+  let totalFullscreenAwaySeconds = session.total_fullscreen_away_seconds || 0;
+  if (session.last_fullscreen_exit_at) {
+    totalFullscreenAwaySeconds += Math.max(0, Math.round((new Date(completedAt).getTime() - new Date(session.last_fullscreen_exit_at).getTime()) / 1000));
+  }
 
-  db.prepare(`INSERT INTO session_events (id, session_id, event_type, payload, created_at) VALUES (?, ?, 'submitted', ?, ?)`).run(nanoid(), session.id, JSON.stringify({ late, rawScore, percent }), completedAt);
+  db.prepare(
+    `UPDATE candidate_sessions SET status = 'completed', score = ?, raw_score = ?, percent = ?, completed_at = ?, consumed_at = ?, total_fullscreen_away_seconds = ?, last_fullscreen_exit_at = NULL, flagged = CASE WHEN flagged = 1 OR ? = 1 THEN 1 ELSE 0 END, updated_at = ? WHERE id = ?`
+  ).run(score, rawScore, percent, completedAt, consumedAt, totalFullscreenAwaySeconds, finalFlagged, completedAt, session.id);
+
+  db.prepare(`INSERT INTO session_events (id, session_id, event_type, payload, created_at) VALUES (?, ?, 'submitted', ?, ?)`).run(nanoid(), session.id, JSON.stringify({ late, rawScore, percent, totalFullscreenAwaySeconds }), completedAt);
+
+  const flaggedEvents = db.prepare(`SELECT event_type, created_at, payload FROM session_events WHERE session_id = ? AND event_type IN ('tab_switch', 'copy_attempt', 'paste_attempt', 'right_click', 'fullscreen_exit') ORDER BY created_at ASC`).all(session.id) as { event_type: string; created_at: string; payload: string }[];
+
+  if (resend) {
+    const eventLines = flaggedEvents.length
+      ? flaggedEvents.map((event) => `<li><strong>${event.event_type}</strong> at ${event.created_at}</li>`).join('')
+      : '<li>No flagged events recorded.</li>';
+
+    void resend.emails.send({
+      from: EMAIL_FROM,
+      to: [ADMIN_EMAIL],
+      subject: `IQ Test completed: ${session.candidate_name} (${percent}%)`,
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #111;">
+          <h2>IQ Test completed</h2>
+          <p><strong>Candidate:</strong> ${session.candidate_name} (${session.candidate_email})</p>
+          <p><strong>Score:</strong> ${score} / ${QUESTION_COUNT} (${percent}%)</p>
+          <p><strong>Flagged:</strong> ${Boolean((session.tab_switches || session.copy_events || session.fullscreen_exits || finalFlagged) > 0) ? 'Yes' : 'No'}</p>
+          <p><strong>Tab switches:</strong> ${session.tab_switches}</p>
+          <p><strong>Copy/paste/right-click count:</strong> ${session.copy_events}</p>
+          <p><strong>Fullscreen exits:</strong> ${session.fullscreen_exits}</p>
+          <p><strong>Total time outside fullscreen:</strong> ${totalFullscreenAwaySeconds} seconds</p>
+          <h3>Flagged events</h3>
+          <ul>${eventLines}</ul>
+        </div>
+      `,
+    });
+  }
+
   res.json({ score, rawScore, percent, late, flagged: Boolean((session.tab_switches || session.copy_events || session.fullscreen_exits || finalFlagged) > 0) });
 });
 
