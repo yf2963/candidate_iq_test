@@ -214,6 +214,7 @@ async function maybeSendInviteEmail(name: string, email: string, link: string) {
             <ul style="padding-left: 18px; margin: 0;">
               <li>One attempt only</li>
               <li>30-minute time limit</li>
+              <li>No external sources or outside assistance allowed</li>
               <li>Fullscreen is required during the test</li>
               <li>Please use a stable internet connection and complete it in one sitting</li>
             </ul>

@@ -41,7 +41,7 @@ fixes = {
         "answerIndex": 1,
     },
     41: {
-        "prompt": "In the following number series, what letter comes next?  A C F J O ?",
+        "prompt": "In the word DIAGRAMMATIC, locate the letters R and M. Find the letter halfway between them in the word. Which letter is three positions to the right of that halfway letter?",
         "options": ["A", "G", "M", "T", "I"],
         "answerIndex": 0,
     },
