@@ -40,6 +40,10 @@ fixes = {
         "options": ["21 cm", "22 1/2 cm", "23 3/5 cm", "24 cm", "25 cm"],
         "answerIndex": 1,
     },
+    41: {
+        "options": ["p", "k", "n", "m", "i"],
+        "answerIndex": 4,
+    },
     80: {
         "prompt": "A 20 meter rope is cut into two parts so that one part is ⅔ the length of the other. How long is the longer part?",
         "options": ["13 1/3 m", "10 m", "15 m", "16 m", "12 m"],

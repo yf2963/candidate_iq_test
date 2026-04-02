@@ -22,6 +22,7 @@ button, input { font: inherit; }
 .button.secondary { background: rgba(255,255,255,0.08); }
 .result-block, .warning, .error { margin-top: 1rem; padding: 1rem; border-radius: 16px; background: rgba(255,255,255,0.05); }
 .warning { color: #ffce73; }
+.floating-warning { position: sticky; top: 1rem; z-index: 20; display: flex; gap: 1rem; align-items: center; justify-content: space-between; margin: 0 auto; width: min(1120px, calc(100% - 2rem)); padding: 0.9rem 1rem; border-radius: 16px; background: rgba(255, 206, 115, 0.14); border: 1px solid rgba(255, 206, 115, 0.32); color: #ffce73; backdrop-filter: blur(6px); }
 .error { color: #ff9b9b; }
 .table-wrap { overflow: auto; }
 table { width: 100%; border-collapse: collapse; }

@@ -111,7 +111,7 @@ export default function CandidatePage() {
         <div>
           <span className="eyebrow">Candidate assessment</span>
           <h1>{testQuery.data?.candidate.name}, begin when ready.</h1>
-          <p>One attempt only. Fullscreen is required. Tab switching, copy/paste, and right-click are logged.</p>
+          <p>One attempt only. Fullscreen is required.</p>
         </div>
         <div className="timer">{minutes}</div>
       </section>
@@ -121,17 +121,21 @@ export default function CandidatePage() {
           <ul className="rules-list">
             <li>30-minute hard timer</li>
             <li>One attempt only</li>
-            <li>No outside help</li>
-            <li>No tab switching, copy/paste, or right-click</li>
-            <li>You must stay in fullscreen during the test</li>
+            <li>Fullscreen is required during the test</li>
           </ul>
           <button className="button" onClick={beginTest} disabled={startMutation.isPending}>
             {startMutation.isPending ? 'Starting…' : 'Enter fullscreen and start test'}
           </button>
         </section>
       ) : (
+        <>
+          {!fullscreenOk && (
+            <div className="floating-warning">
+              <span>Return to fullscreen to continue the assessment.</span>
+              <button className="button secondary" onClick={requestFullscreenAgain}>Return to fullscreen</button>
+            </div>
+          )}
         <section className="card">
-          {!fullscreenOk && <div className="warning">Return to fullscreen immediately. Exits are logged. <button className="button secondary" onClick={requestFullscreenAgain}>Return to fullscreen</button></div>}
           <div className="question-list">
             {testQuery.data?.questions.map((question, index) => (
               <article key={question.id} className="question-card">
@@ -151,6 +155,7 @@ export default function CandidatePage() {
           </div>
           <button className="button" onClick={() => submitMutation.mutate()} disabled={submitMutation.isPending}>{submitMutation.isPending ? 'Submitting…' : 'Submit test'}</button>
         </section>
+        </>
       )}
     </main>
   );

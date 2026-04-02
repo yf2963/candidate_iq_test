@@ -637,13 +637,13 @@
     "category": "logical-reasoning",
     "prompt": "In the word DIAGRAMMATIC, locate the letters R and M. Find the letter halfway between them in the word. Which letter is three positions to the right of that halfway letter? i",
     "options": [
-      "a",
-      "g",
+      "p",
+      "k",
+      "n",
       "m",
-      "t",
-      ""
+      "i"
     ],
-    "answerIndex": 0,
+    "answerIndex": 4,
     "explanation": "",
     "difficulty": 3,
     "imageUrl": null
