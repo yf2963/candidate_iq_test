@@ -253,7 +253,13 @@ app.get('/api/admin/summary', adminAuth, (_req, res) => {
     )
     .all();
 
-  res.json({ config: { durationSeconds: TEST_DURATION_SECONDS, questionCount: QUESTION_COUNT }, sessions });
+  const events = db
+    .prepare(
+      `SELECT session_id, event_type, payload, created_at FROM session_events ORDER BY created_at DESC LIMIT 200`
+    )
+    .all();
+
+  res.json({ config: { durationSeconds: TEST_DURATION_SECONDS, questionCount: QUESTION_COUNT }, sessions, events });
 });
 
 app.post('/api/admin/candidates', adminAuth, async (req, res) => {

@@ -16,6 +16,13 @@ type Session = {
   flagged: number;
 };
 
+type SessionEvent = {
+  session_id: string;
+  event_type: string;
+  payload: string;
+  created_at: string;
+};
+
 export default function AdminPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -36,7 +43,7 @@ export default function AdminPage() {
 
   const summary = useQuery({
     queryKey: ['summary'],
-    queryFn: () => api<{ sessions: Session[]; config: { durationSeconds: number; questionCount: number } }>('/admin/summary'),
+    queryFn: () => api<{ sessions: Session[]; events: SessionEvent[]; config: { durationSeconds: number; questionCount: number } }>('/admin/summary'),
     enabled: !!me.data,
   });
 
@@ -81,13 +88,15 @@ export default function AdminPage() {
             <input value={email} onChange={(e) => setEmail(e.target.value)} />
           </label>
         </div>
-        <label className="checkbox-row">
-          <input type="checkbox" checked={sendEmail} onChange={(e) => setSendEmail(e.target.checked)} />
-          <span>Send candidate invite email</span>
-        </label>
-        <button className="button" onClick={() => createMutation.mutate()} disabled={!name || !email || createMutation.isPending}>
-          {createMutation.isPending ? 'Generating…' : 'Generate one-time link'}
-        </button>
+        <div className="action-row">
+          <label className="checkbox-row">
+            <input type="checkbox" checked={sendEmail} onChange={(e) => setSendEmail(e.target.checked)} />
+            <span>Send candidate invite email</span>
+          </label>
+          <button className="button" onClick={() => createMutation.mutate()} disabled={!name || !email || createMutation.isPending}>
+            {createMutation.isPending ? 'Generating…' : 'Generate one-time link'}
+          </button>
+        </div>
         {createMutation.error && <div className="error">{(createMutation.error as Error).message}</div>}
         {link && <div className="result-block"><strong>Candidate link</strong><code>{link}</code></div>}
       </section>
@@ -115,6 +124,29 @@ export default function AdminPage() {
                   <td>{session.score ?? '—'}</td>
                   <td>{session.percent ?? '—'}</td>
                   <td>{session.flagged ? `tab:${session.tab_switches} copy:${session.copy_events} full:${session.fullscreen_exits}` : 'clean'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <h2>Recent session events</h2>
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Session</th>
+                <th>Event</th>
+                <th>When</th>
+                <th>Payload</th>
+              </tr>
+            </thead>
+            <tbody>
+              {summary.data?.events.map((event, index) => (
+                <tr key={`${event.session_id}-${event.created_at}-${index}`}>
+                  <td>{event.session_id}</td>
+                  <td>{event.event_type}</td>
+                  <td>{event.created_at}</td>
+                  <td><code>{event.payload}</code></td>
                 </tr>
               ))}
             </tbody>

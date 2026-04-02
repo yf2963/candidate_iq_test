@@ -15,8 +15,9 @@ button, input { font: inherit; }
 .hero h1 { font-size: clamp(2rem, 5vw, 3.75rem); line-height: 1.02; margin: 0.25rem 0 1rem; max-width: 12ch; }
 .eyebrow { text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.75rem; color: #8ea4ff; }
 .actions, .inline-fields, .toolbar { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: space-between; align-items: center; }
-.field { display: flex; flex-direction: column; gap: 0.35rem; margin: 1rem 0; }
-.field input { border-radius: 14px; border: 1px solid rgba(143, 165, 255, 0.2); background: rgba(255,255,255,0.04); color: white; padding: 0.85rem 1rem; min-width: 260px; }
+.inline-fields { gap: 2rem; align-items: flex-end; }
+.field { display: flex; flex-direction: column; gap: 0.35rem; margin: 1rem 0; flex: 1 1 320px; }
+.field input { border-radius: 14px; border: 1px solid rgba(143, 165, 255, 0.2); background: rgba(255,255,255,0.04); color: white; padding: 0.85rem 1rem; width: 100%; min-width: 0; }
 .button { display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 999px; padding: 0.9rem 1.35rem; color: white; background: linear-gradient(135deg, #5d72ff, #7d4dff); cursor: pointer; font-weight: 700; }
 .button.secondary { background: rgba(255,255,255,0.08); }
 .result-block, .warning, .error { margin-top: 1rem; padding: 1rem; border-radius: 16px; background: rgba(255,255,255,0.05); }
@@ -40,6 +41,8 @@ th, td { text-align: left; padding: 0.85rem 0.75rem; border-bottom: 1px solid rg
 code { display: block; overflow-wrap: anywhere; margin-top: 0.5rem; }
 .auth-shell { display: grid; place-items: center; min-height: 100vh; }
 .auth-card { width: min(520px, 100%); }
-.checkbox-row, .rules-list { margin: 1rem 0; }
+.action-row { display: flex; gap: 1.25rem; align-items: center; flex-wrap: wrap; margin-top: 0.5rem; }
+.checkbox-row, .rules-list { margin: 0.5rem 0; }
+.checkbox-row { display: inline-flex; align-items: center; gap: 0.55rem; }
 .link { display: inline-block; margin-top: 1rem; color: #a6b7ff; }
-@media (max-width: 800px) { .sticky-header { flex-direction: column; } }
+@media (max-width: 800px) { .sticky-header { flex-direction: column; } .action-row { align-items: stretch; } }

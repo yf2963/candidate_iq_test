@@ -78,11 +78,15 @@ export default function CandidatePage() {
     };
   }, [token, started]);
 
-  async function beginTest() {
+  async function requestFullscreenAgain() {
     if (!document.fullscreenElement) {
       await document.documentElement.requestFullscreen();
       setFullscreenOk(true);
     }
+  }
+
+  async function beginTest() {
+    await requestFullscreenAgain();
     startMutation.mutate();
   }
 
@@ -97,7 +101,7 @@ export default function CandidatePage() {
   if (testQuery.error) return <main className="shell"><section className="card"><p className="error">{(testQuery.error as Error).message}</p></section></main>;
 
   if (submitted && result) {
-    return <main className="shell"><section className="card"><h1>Test submitted</h1><p>Your responses were recorded.</p><p><strong>Score:</strong> {result.score} / 80 ({result.percent}%)</p>{result.flagged && <p className="warning">This session was flagged for anti-cheat violations.</p>}</section></main>;
+    return <main className="shell"><section className="card"><h1>Test submitted</h1><p>Your responses were recorded.</p><p><strong>Score:</strong> {result.score} / 80 ({result.percent}%)</p></section></main>;
   }
 
   return (
@@ -126,7 +130,7 @@ export default function CandidatePage() {
         </section>
       ) : (
         <section className="card">
-          {!fullscreenOk && <div className="warning">Return to fullscreen immediately. Exits are logged.</div>}
+          {!fullscreenOk && <div className="warning">Return to fullscreen immediately. Exits are logged. <button className="button secondary" onClick={requestFullscreenAgain}>Return to fullscreen</button></div>}
           <div className="question-list">
             {testQuery.data?.questions.map((question, index) => (
               <article key={question.id} className="question-card">
