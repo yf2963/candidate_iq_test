@@ -1,0 +1,1264 @@
+[
+  {
+    "id": "q-1",
+    "category": "logical-reasoning",
+    "prompt": "A car is most likely to have which of the following?",
+    "options": [
+      "radio",
+      "heater",
+      "fuel source",
+      "spare tire",
+      "mud flaps"
+    ],
+    "answerIndex": 2,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-2",
+    "category": "verbal-analogies",
+    "prompt": "Which word indicates the movement of an axis?",
+    "options": [
+      "progress",
+      "acceleration",
+      "rotation",
+      "vibration",
+      "retardation"
+    ],
+    "answerIndex": 2,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-3",
+    "category": "verbal-analogies",
+    "prompt": "The woodpecker gave the tree many pecks in quick ___.",
+    "options": [
+      "rotation",
+      "vibration",
+      "progression",
+      "succession",
+      "simultaneity"
+    ],
+    "answerIndex": 3,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-4",
+    "category": "logical-reasoning",
+    "prompt": "A horse does not always have which of the following?",
+    "options": [
+      "heart",
+      "eyes",
+      "horseshoes",
+      "skin",
+      "tail"
+    ],
+    "answerIndex": 2,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-5",
+    "category": "verbal-analogies",
+    "prompt": "Which word is the opposite of generous?",
+    "options": [
+      "economic",
+      "poor",
+      "uneducated",
+      "sick",
+      "stingy"
+    ],
+    "answerIndex": 4,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-6",
+    "category": "logical-reasoning",
+    "prompt": "A man is always ___ than his daughter.",
+    "options": [
+      "taller",
+      "wiser",
+      "older",
+      "darker",
+      "fatter"
+    ],
+    "answerIndex": 2,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-7",
+    "category": "verbal-analogies",
+    "prompt": "Mother-in-law is to son-in-law as father-in-law is to ___.",
+    "options": [
+      "bride",
+      "daughter-in-law",
+      "wife",
+      "married",
+      "mother-in-law"
+    ],
+    "answerIndex": 1,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-8",
+    "category": "pattern-recognition",
+    "prompt": "The first figure relates to the second in the same way that the third figure relates to one of the options. Which option completes the analogy?",
+    "options": [
+      "F",
+      "G",
+      "H",
+      "I"
+    ],
+    "answerIndex": 0,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": "/question-images/Question8.png"
+  },
+  {
+    "id": "q-9",
+    "category": "verbal-analogies",
+    "prompt": "Which word is the opposite of strange?",
+    "options": [
+      "easy",
+      "familiar",
+      "often",
+      "cordial",
+      "intimate"
+    ],
+    "answerIndex": 1,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-10",
+    "category": "logical-reasoning",
+    "prompt": "In a soccer game, there are always ___.",
+    "options": [
+      "spectators",
+      "stadium",
+      "peripherals",
+      "competitors",
+      "winning team"
+    ],
+    "answerIndex": 3,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-11",
+    "category": "verbal-analogies",
+    "prompt": "A vacuum cleaner is to a broom as a refrigerator is to ___.",
+    "options": [
+      "a kitchen",
+      "a stove",
+      "electricity",
+      "a cooler",
+      "an invention"
+    ],
+    "answerIndex": 3,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-12",
+    "category": "arithmetic-word-problems",
+    "prompt": "At a party there were a man and his wife; their three children and each child's wife; and four children in each child's family. How many people were at the party?",
+    "options": [
+      "9",
+      "10",
+      "12",
+      "18",
+      "20"
+    ],
+    "answerIndex": 4,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-13",
+    "category": "logical-reasoning",
+    "prompt": "Wool is generally more expensive than cotton because it is more ___.",
+    "options": [
+      "heavy",
+      "soft",
+      "difficult to produce",
+      "ordinary",
+      "difficult to keep clean"
+    ],
+    "answerIndex": 2,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-14",
+    "category": "verbal-analogies",
+    "prompt": "Which word is the opposite of natural?",
+    "options": [
+      "shallow",
+      "bizarre",
+      "injurious",
+      "artificial",
+      "rare"
+    ],
+    "answerIndex": 3,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-15",
+    "category": "logical-reasoning",
+    "prompt": "In the word CONFIDENTIAL, which letter is in the same position in the word (counting from 1) as it is in the alphabet (A=1, B=2, \u2026)?",
+    "options": [
+      "E",
+      "D",
+      "L",
+      "N",
+      "F"
+    ],
+    "answerIndex": 2,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-16",
+    "category": "logical-reasoning",
+    "prompt": "Which word is least similar to the other four?",
+    "options": [
+      "lie",
+      "walk",
+      "cheat",
+      "steal",
+      "scam"
+    ],
+    "answerIndex": 1,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-17",
+    "category": "logical-reasoning",
+    "prompt": "A church is most likely to have which of the following?",
+    "options": [
+      "a bell tower",
+      "bell",
+      "congregation",
+      "organ",
+      "choir"
+    ],
+    "answerIndex": 2,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-18",
+    "category": "logical-reasoning",
+    "prompt": "Which word is least similar to the other four?",
+    "options": [
+      "fine",
+      "rise",
+      "bright",
+      "clean",
+      "soft"
+    ],
+    "answerIndex": 1,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-19",
+    "category": "pattern-recognition",
+    "prompt": "The first figure relates to the second in the same way that the third figure relates to one of the options. Which option completes the analogy?",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "answerIndex": 3,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": "/question-images/Question19.png"
+  },
+  {
+    "id": "q-20",
+    "category": "verbal-analogies",
+    "prompt": "Which word would appear last in the dictionary?",
+    "options": [
+      "sea",
+      "list",
+      "look",
+      "thousand",
+      "parrot"
+    ],
+    "answerIndex": 3,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-21",
+    "category": "number-sequences",
+    "prompt": "One number in the following series is incorrect. What should the correct number be? \u21d2 1 3 9 27 36 243",
+    "options": [
+      "2",
+      "81",
+      "5",
+      "15",
+      "45"
+    ],
+    "answerIndex": 1,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-22",
+    "category": "verbal-analogies",
+    "prompt": "A measuring tape is to distance as a clock is to ___.",
+    "options": [
+      "its hands",
+      "the hour",
+      "time",
+      "a wristwatch",
+      "school"
+    ],
+    "answerIndex": 2,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-23",
+    "category": "arithmetic-word-problems",
+    "prompt": "If 25 badges are made with 3\u2153 meters of ribbon, how many badges can be made with 10 meters?",
+    "options": [
+      "250",
+      "33 1/3",
+      "75",
+      "10",
+      "50"
+    ],
+    "answerIndex": 2,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-24",
+    "category": "verbal-analogies",
+    "prompt": "Doctor is to patient as lawyer is to ___.",
+    "options": [
+      "client",
+      "patient",
+      "office",
+      "licensee",
+      "customer"
+    ],
+    "answerIndex": 0,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-25",
+    "category": "logical-reasoning",
+    "prompt": "All the young people in this room are members of the Club. Francisco is in this room. Francisco is not a member of the Club. If the first two statements are true, the third statement is:",
+    "options": [
+      "True",
+      "False",
+      "Uncertain"
+    ],
+    "answerIndex": 2,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-26",
+    "category": "logical-reasoning",
+    "prompt": "Rearrange the following words to form the best possible sentence. With which letter does the second word begin? \u21d2 yards is a ten hundred to possible seconds in run it",
+    "options": [
+      "T",
+      "I",
+      "Y",
+      "H",
+      "R"
+    ],
+    "answerIndex": 1,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-27",
+    "category": "arithmetic-word-problems",
+    "prompt": "If 10 boxes of apples are worth $20 and each box costs 15\u00a2, how much are the apples worth without the boxes?",
+    "options": [
+      "$1.85",
+      "$18.50",
+      "$19.85",
+      "$20.15",
+      "$21.50"
+    ],
+    "answerIndex": 1,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-28",
+    "category": "verbal-analogies",
+    "prompt": "If we accept other people's right to hold opinions different from our own, we are ___.",
+    "options": [
+      "conservative",
+      "radical",
+      "tolerant",
+      "superior",
+      "sympathetic"
+    ],
+    "answerIndex": 2,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-29",
+    "category": "logical-reasoning",
+    "prompt": "A rose bush must have which of the following?",
+    "options": [
+      "roses",
+      "thorns",
+      "roots",
+      "compost",
+      "buds"
+    ],
+    "answerIndex": 2,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-30",
+    "category": "arithmetic-word-problems",
+    "prompt": "If pencils are sold at 3 for 10 cents, how many can be bought with 90 cents?",
+    "options": [
+      "9",
+      "30",
+      "270",
+      "27",
+      "900"
+    ],
+    "answerIndex": 3,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-31",
+    "category": "verbal-analogies",
+    "prompt": "Orbit is to planet as ___ is to light.",
+    "options": [
+      "photon",
+      "gravity",
+      "eclipse",
+      "solar",
+      "ray"
+    ],
+    "answerIndex": 4,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-32",
+    "category": "verbal-analogies",
+    "prompt": "To transport means \"to carry through\"; to transmit means \"to send across.\" Therefore, trans means ___.",
+    "options": [
+      "carry",
+      "move",
+      "around",
+      "return",
+      "through"
+    ],
+    "answerIndex": 4,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-33",
+    "category": "pattern-recognition",
+    "prompt": "The first figure relates to the second in the same way that the third figure relates to one of the options. Which option completes the analogy?",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "answerIndex": 3,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": "/question-images/Question33.png"
+  },
+  {
+    "id": "q-34",
+    "category": "arithmetic-word-problems",
+    "prompt": "If a motion picture camera can take 6 photos in \u00bc second, how many photos can it take in 10 seconds?",
+    "options": [
+      "15",
+      "24",
+      "240",
+      "60",
+      "40"
+    ],
+    "answerIndex": 2,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-35",
+    "category": "logical-reasoning",
+    "prompt": "Which pair of words is least similar to the other pairs?",
+    "options": [
+      "king, queen",
+      "black, white",
+      "up, down",
+      "hot, cold",
+      "in, out"
+    ],
+    "answerIndex": 0,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-36",
+    "category": "verbal-analogies",
+    "prompt": "\"I will go\" is to \"I went\" as \"tomorrow\" is to ___.",
+    "options": [
+      "today",
+      "to leave",
+      "yesterday",
+      "time",
+      "movement"
+    ],
+    "answerIndex": 2,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-37",
+    "category": "logical-reasoning",
+    "prompt": "All the people who live in this apartment are conservative. Perez is not conservative. Perez lives in this apartment. If the first two statements are true, the third statement is:",
+    "options": [
+      "True",
+      "False",
+      "Uncertain"
+    ],
+    "answerIndex": 1,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-38",
+    "category": "logical-reasoning",
+    "prompt": "Franco is to flanco as ___ is to blindo.",
+    "options": [
+      "brinco",
+      "brindo",
+      "lindo",
+      "blanco",
+      "pliso"
+    ],
+    "answerIndex": 1,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-39",
+    "category": "logical-reasoning",
+    "prompt": "Which word is most like love, anger, and hope?",
+    "options": [
+      "fear",
+      "smell",
+      "life",
+      "thinking",
+      "do"
+    ],
+    "answerIndex": 0,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-40",
+    "category": "verbal-analogies",
+    "prompt": "Which word is the opposite of general?",
+    "options": [
+      "particular",
+      "ordinary",
+      "prevailing",
+      "inferior",
+      "subordinate"
+    ],
+    "answerIndex": 0,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-41",
+    "category": "logical-reasoning",
+    "prompt": "In the word DIAGRAMMATIC, locate the letters R and M. Find the letter halfway between them in the word. Which letter is three positions to the right of that halfway letter? i",
+    "options": [
+      "a",
+      "g",
+      "m",
+      "t",
+      ""
+    ],
+    "answerIndex": 0,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-42",
+    "category": "logical-reasoning",
+    "prompt": "To think that roses can feel sadness is ___.",
+    "options": [
+      "perverse",
+      "unfair",
+      "improbable",
+      "absurd",
+      "misleading"
+    ],
+    "answerIndex": 3,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-43",
+    "category": "logical-reasoning",
+    "prompt": "Carlos is younger than Enrique. Pedro is younger than Carlos. Enrique is older than Pedro. If the first two statements are true, the third statement is:",
+    "options": [
+      "True",
+      "False",
+      "Uncertain"
+    ],
+    "answerIndex": 0,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-44",
+    "category": "logical-reasoning",
+    "prompt": "Which of the following terms describes a character trait?",
+    "options": [
+      "deafness",
+      "pitch",
+      "poverty",
+      "daftness",
+      "height"
+    ],
+    "answerIndex": 3,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-45",
+    "category": "verbal-analogies",
+    "prompt": "A club that accepts only very wealthy people as members is said to be ___.",
+    "options": [
+      "stuck-up",
+      "exclusive",
+      "conservative",
+      "liberal",
+      "unpatriotic"
+    ],
+    "answerIndex": 1,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-46",
+    "category": "verbal-analogies",
+    "prompt": "Municipal council is to city as ___ is to country.",
+    "options": [
+      "mayor",
+      "congress",
+      "judiciary",
+      "citizenship",
+      "governor"
+    ],
+    "answerIndex": 1,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-47",
+    "category": "verbal-analogies",
+    "prompt": "Something that conforms to established norms is said to be ___.",
+    "options": [
+      "rare",
+      "ordinary",
+      "fantastic",
+      "legit",
+      "extraordinary"
+    ],
+    "answerIndex": 1,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-48",
+    "category": "verbal-analogies",
+    "prompt": "A lake is to land as ___ is to ocean.",
+    "options": [
+      "water",
+      "a boat",
+      "an island",
+      "a wave",
+      "a beach"
+    ],
+    "answerIndex": 2,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-49",
+    "category": "logical-reasoning",
+    "prompt": "In the word MASTER, find two letters that are in alphabetical order and separated (in the word) by the same number of letters as separates them in the alphabet. Which of those two letters comes first in the alphabet? E . r",
+    "options": [
+      "m",
+      "a",
+      "t",
+      "e"
+    ],
+    "answerIndex": 0,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-50",
+    "category": "pattern-recognition",
+    "prompt": "The first figure relates to the second in the same way that the third figure relates to one of the options. Which option completes the analogy?",
+    "options": [
+      "F",
+      "G",
+      "H",
+      "I"
+    ],
+    "answerIndex": 3,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": "/question-images/Question50.png"
+  },
+  {
+    "id": "q-51",
+    "category": "logical-reasoning",
+    "prompt": "Some members of this club are Methodists. Some members are musicians. Some members are both Methodists and musicians. If the first two statements are true, the third statement is:",
+    "options": [
+      "True",
+      "False",
+      "Uncertain"
+    ],
+    "answerIndex": 2,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-52",
+    "category": "verbal-analogies",
+    "prompt": "Which word is the opposite of sincere?",
+    "options": [
+      "boastful",
+      "unfortunate",
+      "hypocritical",
+      "quarrelsome",
+      "disingenuous"
+    ],
+    "answerIndex": 4,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-53",
+    "category": "verbal-analogies",
+    "prompt": "If the meaning of a sentence is not clear, the sentence is said to be ___.",
+    "options": [
+      "incorrect",
+      "absurd",
+      "contradictory",
+      "obscure",
+      "false"
+    ],
+    "answerIndex": 3,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-54",
+    "category": "logical-reasoning",
+    "prompt": "If the following letters are arranged in reverse alphabetical order, which letter would be fourth? G K P T E",
+    "options": [
+      "G",
+      "K",
+      "P",
+      "T",
+      "E"
+    ],
+    "answerIndex": 0,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-55",
+    "category": "logical-reasoning",
+    "prompt": "How many of the following words can be made using letters from the word NAVIGATE, using any letter twice if necessary? \u21d2 avenge naval frog sell win winner snow",
+    "options": [
+      "1",
+      "5",
+      "2",
+      "3",
+      "4"
+    ],
+    "answerIndex": 0,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-56",
+    "category": "logical-reasoning",
+    "prompt": "Which word is least similar to the other four?",
+    "options": [
+      "hit",
+      "stick",
+      "roll",
+      "pound",
+      "rap"
+    ],
+    "answerIndex": 2,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-57",
+    "category": "logical-reasoning",
+    "prompt": "If the syllables NAN, NON, DAD, PEP and TOT were printed on a poster and the respective images were read in a mirror, how many of them would be the same as if they were read directly from the poster?",
+    "options": [
+      "2",
+      "3",
+      "4",
+      "0",
+      "1"
+    ],
+    "answerIndex": 4,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-58",
+    "category": "number-sequences",
+    "prompt": "There is a wrong number in the following series. What should be the correct number? \u21d2 1 2 5 6 9 10 13 14 16 18",
+    "options": [
+      "11",
+      "12",
+      "19",
+      "15",
+      "17"
+    ],
+    "answerIndex": 4,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-59",
+    "category": "arithmetic-word-problems",
+    "prompt": "If 4 1\u20442 meters of ribbon cost $9, how much would 3 1\u20442 meters cost?",
+    "options": [
+      "$8.00",
+      "$7.50",
+      "$4.50",
+      "$7.00",
+      "$3.50"
+    ],
+    "answerIndex": 3,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-60",
+    "category": "verbal-analogies",
+    "prompt": "Which of the following words can correctly begin this sentence? \u21d2 \"___ it's cloudy, the moon will be seen tonight.\"",
+    "options": [
+      "if",
+      "since",
+      "as",
+      "because",
+      "unless"
+    ],
+    "answerIndex": 4,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-61",
+    "category": "pattern-recognition",
+    "prompt": "The first figure relates to the second in the same way that the third figure relates to one of the options. Which option completes the analogy?",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "answerIndex": 2,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": "/question-images/Question61.png"
+  },
+  {
+    "id": "q-62",
+    "category": "logical-reasoning",
+    "prompt": "Rearrange the following words to form the best possible sentence. With which letter does the sixth word begin? \u21d2 money it to make important is friend than more a",
+    "options": [
+      "d",
+      "q",
+      "i",
+      "t",
+      "m"
+    ],
+    "answerIndex": 4,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-63",
+    "category": "verbal-analogies",
+    "prompt": "Which word means to refuse, reject, discard, or deny?",
+    "options": [
+      "reciprocate",
+      "waive",
+      "sue",
+      "repudiate",
+      "retaliate"
+    ],
+    "answerIndex": 3,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-64",
+    "category": "verbal-analogies",
+    "prompt": "The opposite of effect is",
+    "options": [
+      "result",
+      "success",
+      "cause",
+      "consequence",
+      "influence"
+    ],
+    "answerIndex": 2,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-65",
+    "category": "verbal-analogies",
+    "prompt": "A cost that is much higher than what is customary or reasonable is said to be ___.",
+    "options": [
+      "taxed",
+      "impossible",
+      "inept",
+      "exorbitant",
+      "retaliatory"
+    ],
+    "answerIndex": 3,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-66",
+    "category": "logical-reasoning",
+    "prompt": "Which of the five things below is most like coal, tar, and charcoal?",
+    "options": [
+      "wood",
+      "smoke",
+      "sand",
+      "soot",
+      "mud"
+    ],
+    "answerIndex": 3,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-67",
+    "category": "arithmetic-word-problems",
+    "prompt": "One number in the following series is incorrect. What should the correct number be? \u21d2 10 11 13 16 20 25 30 38",
+    "options": [
+      "12",
+      "15",
+      "19",
+      "24",
+      "31"
+    ],
+    "answerIndex": 4,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-68",
+    "category": "number-sequences",
+    "prompt": "A soft drink is made from 2 parts grapefruit juice and 3 parts orange juice. How many liters of orange juice are needed to make 15 liters of this mixture?",
+    "options": [
+      "3",
+      "5",
+      "9",
+      "10",
+      "2"
+    ],
+    "answerIndex": 2,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-69",
+    "category": "verbal-analogies",
+    "prompt": "If you spend a lot of time doing a job, it is said that you do it (?)",
+    "options": [
+      "carefully",
+      "slowly",
+      "late",
+      "gradually",
+      "timely"
+    ],
+    "answerIndex": 1,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-70",
+    "category": "arithmetic-word-problems",
+    "prompt": "Thomas reads 30 pages in the time Ralph reads 20 pages. How many pages will Thomas read while Ralph reads 30 pages?",
+    "options": [
+      "40",
+      "50",
+      "60",
+      "45",
+      "35"
+    ],
+    "answerIndex": 3,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-71",
+    "category": "logical-reasoning",
+    "prompt": "Astronomy is to the sun and stars as ___ is to respiration and digestion.",
+    "options": [
+      "physics",
+      "mathematics",
+      "physiology",
+      "chemistry",
+      "the body"
+    ],
+    "answerIndex": 2,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-72",
+    "category": "arithmetic-word-problems",
+    "prompt": "A 24 cm rubber band stretches to 30 cm. If it stretches by the same proportion, how long would an 18 cm section stretch to?",
+    "options": [
+      "21 cm",
+      "22 1/2 cm",
+      "23 3/5 cm",
+      "24 cm",
+      "25 cm"
+    ],
+    "answerIndex": 1,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-73",
+    "category": "pattern-recognition",
+    "prompt": "The first figure relates to the second in the same way that the third figure relates to one of the options. Which option completes the analogy?",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "answerIndex": 0,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": "/question-images/Question73.png"
+  },
+  {
+    "id": "q-74",
+    "category": "logical-reasoning",
+    "prompt": "You cannot become a good stenographer without diligent practice. Alicia practices stenography diligently. Alicia can be a good stenographer. If the first two statements are true, the third statement is:",
+    "options": [
+      "True",
+      "False",
+      "Uncertain"
+    ],
+    "answerIndex": 2,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-75",
+    "category": "logical-reasoning",
+    "prompt": "Which of the following four pairs of words are least similar to the other three?",
+    "options": [
+      "little, small",
+      "begin, start",
+      "shut, close",
+      "dark, light"
+    ],
+    "answerIndex": 3,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-76",
+    "category": "logical-reasoning",
+    "prompt": "Rearrange the following words to form the best possible sentence. With which letter does the second word begin? \u21d2 more money while working more man earns a",
+    "options": [
+      "w",
+      "m",
+      "a",
+      "e",
+      "d"
+    ],
+    "answerIndex": 1,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  },
+  {
+    "id": "q-77",
+    "category": "pattern-recognition",
+    "prompt": "What number is in the smaller space that is in the circle and triangle, but not in the square?",
+    "options": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "answerIndex": 3,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": "/question-images/Question77.png"
+  },
+  {
+    "id": "q-78",
+    "category": "pattern-recognition",
+    "prompt": "Which number is in exactly the same figure(s)\u2014and no others\u2014as the number 3? (The figures are the circle, triangle, and square.)",
+    "options": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "answerIndex": 1,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": "/question-images/Question77.png"
+  },
+  {
+    "id": "q-79",
+    "category": "pattern-recognition",
+    "prompt": "How many regions are inside exactly two of the figures?",
+    "options": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "answerIndex": 3,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": "/question-images/Question77.png"
+  },
+  {
+    "id": "q-80",
+    "category": "arithmetic-word-problems",
+    "prompt": "A 20 meter rope is cut into two parts so that one part is \u2154 the length of the other. How long is the longer part?",
+    "options": [
+      "13 1/3 m",
+      "10 m",
+      "15 m",
+      "16 m",
+      "12 m"
+    ],
+    "answerIndex": 4,
+    "explanation": "",
+    "difficulty": 3,
+    "imageUrl": null
+  }
+]
