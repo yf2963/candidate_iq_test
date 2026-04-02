@@ -121,6 +121,7 @@ export default function CandidatePage() {
           <ul className="rules-list">
             <li>30-minute hard timer</li>
             <li>One attempt only</li>
+            <li>No external sources or outside assistance</li>
             <li>Fullscreen is required during the test</li>
           </ul>
           <button className="button" onClick={beginTest} disabled={startMutation.isPending}>

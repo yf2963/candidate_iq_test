@@ -41,8 +41,9 @@ fixes = {
         "answerIndex": 1,
     },
     41: {
-        "options": ["p", "k", "n", "m", "i"],
-        "answerIndex": 4,
+        "prompt": "In the following number series, what letter comes next?  A C F J O ?",
+        "options": ["A", "G", "M", "T", "I"],
+        "answerIndex": 0,
     },
     80: {
         "prompt": "A 20 meter rope is cut into two parts so that one part is ⅔ the length of the other. How long is the longer part?",

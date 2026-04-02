@@ -635,15 +635,15 @@
   {
     "id": "q-41",
     "category": "logical-reasoning",
-    "prompt": "In the word DIAGRAMMATIC, locate the letters R and M. Find the letter halfway between them in the word. Which letter is three positions to the right of that halfway letter? i",
+    "prompt": "In the following number series, what letter comes next?  A C F J O ?",
     "options": [
-      "p",
-      "k",
-      "n",
-      "m",
-      "i"
+      "A",
+      "G",
+      "M",
+      "T",
+      "I"
     ],
-    "answerIndex": 4,
+    "answerIndex": 0,
     "explanation": "",
     "difficulty": 3,
     "imageUrl": null
