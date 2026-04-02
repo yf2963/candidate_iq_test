@@ -201,14 +201,30 @@ async function maybeSendInviteEmail(name: string, email: string, link: string) {
   await resend.emails.send({
     from: EMAIL_FROM,
     to: [email],
-    subject: 'Your NeoDym IQ assessment link',
+    subject: 'NeoDym Assessment Invitation',
     html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #111;">
-        <h2>NeoDym Candidate Assessment</h2>
-        <p>Hi ${name},</p>
-        <p>You have been invited to complete a timed reasoning assessment.</p>
-        <p><strong>Rules:</strong> one attempt, 30-minute hard timer, no outside help, no tab switching, no copy/paste.</p>
-        <p><a href="${link}">Start your assessment</a></p>
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827; background: #f3f4f6; padding: 32px 16px;">
+        <div style="max-width: 640px; margin: 0 auto; background: #ffffff; border-radius: 16px; padding: 32px; border: 1px solid #e5e7eb;">
+          <p style="font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #6366f1; margin: 0 0 12px;">NeoDym Candidate Assessment</p>
+          <h1 style="font-size: 28px; line-height: 1.2; margin: 0 0 16px; color: #111827;">You’re invited to complete the next step in the NeoDym hiring process</h1>
+          <p style="margin: 0 0 16px;">Hi ${name},</p>
+          <p style="margin: 0 0 16px;">Thank you for your interest in NeoDym. As part of our evaluation process, we ask selected candidates to complete a timed reasoning assessment.</p>
+          <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin: 20px 0;">
+            <p style="margin: 0 0 8px;"><strong>Assessment details</strong></p>
+            <ul style="padding-left: 18px; margin: 0;">
+              <li>One attempt only</li>
+              <li>30-minute time limit</li>
+              <li>Fullscreen is required during the test</li>
+              <li>Please use a stable internet connection and complete it in one sitting</li>
+            </ul>
+          </div>
+          <p style="margin: 0 0 24px;">When you’re ready, use the button below to begin:</p>
+          <p style="margin: 0 0 28px;">
+            <a href="${link}" style="display: inline-block; background: #4f46e5; color: #ffffff; text-decoration: none; font-weight: 600; padding: 14px 22px; border-radius: 10px;">Start Assessment</a>
+          </p>
+          <p style="margin: 0 0 16px; color: #4b5563;">If you experience any technical issue, you can reply to this email.</p>
+          <p style="margin: 0; color: #4b5563;">Best,<br/>NeoDym</p>
+        </div>
       </div>
     `,
   });
