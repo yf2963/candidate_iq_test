@@ -214,7 +214,13 @@ function getHeuristicEntry(questionId: string): HeuristicEntry | undefined {
   return (heuristicMap as Record<string, HeuristicEntry>)[num];
 }
 
-function suspiciousFastThresholdMs(entry: HeuristicEntry | undefined): number {
+function suspiciousFastThresholdMs(entry: HeuristicEntry | undefined, question: Question | undefined): number {
+  const prompt = question?.prompt?.toLowerCase() || '';
+  const isWordRearrangement = prompt.includes('rearrange the following words') || prompt.includes('which letter does the') || prompt.includes('which letter is three positions');
+  const isImageOrPattern = Boolean(question?.imageUrl) || question?.category === 'pattern-recognition';
+
+  if (isImageOrPattern) return 10000;
+  if (isWordRearrangement) return 12000;
   if (!entry) return 4000;
   if (entry.difficulty === 'hard') return 8000;
   if (entry.difficulty === 'medium-hard') return 10000;
@@ -222,28 +228,47 @@ function suspiciousFastThresholdMs(entry: HeuristicEntry | undefined): number {
   return 4000;
 }
 
-function buildHeuristicSummary(sessionId: string, remainingSecondsAtSubmit: number) {
+function heuristicWeight(entry: HeuristicEntry | undefined, question: Question | undefined): number {
+  const prompt = question?.prompt?.toLowerCase() || '';
+  const isWordRearrangement = prompt.includes('rearrange the following words') || prompt.includes('which letter does the') || prompt.includes('which letter is three positions');
+  const isImageOrPattern = Boolean(question?.imageUrl) || question?.category === 'pattern-recognition';
+
+  if (isImageOrPattern) return 3.5;
+  if (isWordRearrangement) return 3.5;
+  if (!entry) return 0.5;
+  if (entry.difficulty === 'hard') return 3;
+  if (entry.difficulty === 'medium-hard') return 2;
+  if (entry.difficulty === 'medium') return 1;
+  return 0.5;
+}
+
+function buildHeuristicSummary(sessionId: string, remainingSecondsAtSubmit: number, unansweredQuestions: number) {
   const rows = db.prepare(`SELECT question_id, is_correct, time_spent_ms FROM session_questions WHERE session_id = ?`).all(sessionId) as { question_id: string; is_correct: number | null; time_spent_ms: number }[];
-  const suspicious: { questionId: string; difficulty: string; timeSpentMs: number }[] = [];
-  let suspicionScore = 0;
+  const suspicious: { questionId: string; difficulty: string; timeSpentMs: number; reason: string }[] = [];
+  let rawSuspicionScore = 0;
 
   for (const row of rows) {
     if (row.is_correct !== 1) continue;
     const entry = getHeuristicEntry(row.question_id);
-    const threshold = suspiciousFastThresholdMs(entry);
+    const question = questionBank.find((q) => q.id === row.question_id);
+    const threshold = suspiciousFastThresholdMs(entry, question);
     if ((row.time_spent_ms ?? 0) > 0 && row.time_spent_ms < threshold) {
-      suspicious.push({ questionId: row.question_id, difficulty: entry?.difficulty || 'unknown', timeSpentMs: row.time_spent_ms });
-      if (entry?.difficulty === 'hard') suspicionScore += 3;
-      else if (entry?.difficulty === 'medium-hard') suspicionScore += 2;
-      else if (entry?.difficulty === 'medium') suspicionScore += 1;
-      else suspicionScore += 0.5;
+      const prompt = question?.prompt?.toLowerCase() || '';
+      const isWordRearrangement = prompt.includes('rearrange the following words') || prompt.includes('which letter does the') || prompt.includes('which letter is three positions');
+      const isImageOrPattern = Boolean(question?.imageUrl) || question?.category === 'pattern-recognition';
+      const reason = isImageOrPattern ? 'very fast correct image/pattern answer' : isWordRearrangement ? 'very fast correct word-rearrangement answer' : 'very fast correct answer';
+      suspicious.push({ questionId: row.question_id, difficulty: entry?.difficulty || 'unknown', timeSpentMs: row.time_spent_ms, reason });
+      rawSuspicionScore += heuristicWeight(entry, question);
     }
   }
 
-  if (remainingSecondsAtSubmit <= 90) suspicionScore *= 0.7;
+  const secondsPerUnanswered = unansweredQuestions > 0 ? remainingSecondsAtSubmit / unansweredQuestions : remainingSecondsAtSubmit;
+  if (secondsPerUnanswered <= 8) rawSuspicionScore *= 0.7;
+  else if (remainingSecondsAtSubmit <= 45) rawSuspicionScore *= 0.8;
 
-  const level = suspicionScore >= 8 ? 'high' : suspicionScore >= 4 ? 'moderate' : 'low';
-  return { level, suspicionScore, suspiciousQuestions: suspicious.slice(0, 10) };
+  const boundedScore = Math.min(10, Math.round(rawSuspicionScore));
+  const level = boundedScore >= 7 ? 'high' : boundedScore >= 4 ? 'moderate' : 'low';
+  return { level, suspicionScore: boundedScore, suspiciousQuestions: suspicious.slice(0, 10) };
 }
 
 async function maybeSendInviteEmail(name: string, email: string, link: string) {
@@ -490,7 +515,8 @@ app.post('/api/test/:token/submit', (req, res) => {
 
   const flaggedEvents = db.prepare(`SELECT event_type, created_at, payload FROM session_events WHERE session_id = ? AND event_type IN ('tab_switch', 'copy_attempt', 'paste_attempt', 'right_click', 'fullscreen_exit') ORDER BY created_at ASC`).all(session.id) as { event_type: string; created_at: string; payload: string }[];
   const remainingSecondsAtSubmit = Math.max(0, Math.floor((deadline - Date.now()) / 1000));
-  const heuristicSummary = buildHeuristicSummary(session.id, remainingSecondsAtSubmit);
+  const unansweredQuestions = questionRows.filter((row) => !Number.isInteger(answers[row.question_id])).length;
+  const heuristicSummary = buildHeuristicSummary(session.id, remainingSecondsAtSubmit, unansweredQuestions);
 
   if (resend) {
     const eventLines = flaggedEvents.length
@@ -515,7 +541,7 @@ app.post('/api/test/:token/submit', (req, res) => {
           <p><strong>Fullscreen exits:</strong> ${session.fullscreen_exits}</p>
           <p><strong>Total time outside fullscreen:</strong> ${totalFullscreenAwaySeconds} seconds</p>
           <p><strong>Heuristic review level:</strong> ${heuristicSummary.level}</p>
-          <p><strong>Heuristic suspicion score:</strong> ${heuristicSummary.suspicionScore}</p>
+          <p><strong>Heuristic suspicion score:</strong> ${heuristicSummary.suspicionScore} / 10</p>
           <h3>Flagged events</h3>
           <ul>${eventLines}</ul>
           <h3>Fast correct questions worth review</h3>
