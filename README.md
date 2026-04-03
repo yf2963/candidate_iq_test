@@ -1,6 +1,6 @@
 # IQ Test
 
-NeoDym hiring assessment app with a fixed 80-question reasoning test, image-based questions, a 30-minute hard timer, automatic scoring, anti-cheat event logging, one-time candidate links, and an admin dashboard.
+NeoDym hiring assessment app with a fixed 80-question reasoning test, image-based questions, a 25-minute hard timer, automatic scoring, anti-cheat event logging, one-time candidate links, and an admin dashboard.
 
 ## Current scope
 

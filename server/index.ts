@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { Resend } from 'resend';
+import heuristicMap from '../scripts/heuristic_map.json' with { type: 'json' };
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,7 +36,7 @@ if (isProduction && fs.existsSync(distDir)) {
 const db = new Database(dbPath);
 db.pragma('journal_mode = WAL');
 
-const TEST_DURATION_SECONDS = 30 * 60;
+const TEST_DURATION_SECONDS = 25 * 60;
 const QUESTION_COUNT = 80;
 const PUBLIC_APP_URL = process.env.PUBLIC_APP_URL || 'http://localhost:5173';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'hello@neodym.ai';
@@ -63,6 +64,12 @@ type Question = {
   explanation: string;
   difficulty: 1 | 2 | 3 | 4 | 5;
   imageUrl?: string | null;
+};
+
+type HeuristicEntry = {
+  difficulty: string;
+  expected: string;
+  signal: string;
 };
 
 type CandidateSessionRow = {
@@ -130,6 +137,7 @@ function initDb() {
       position INTEGER NOT NULL,
       selected_index INTEGER,
       is_correct INTEGER,
+      time_spent_ms INTEGER NOT NULL DEFAULT 0,
       FOREIGN KEY(session_id) REFERENCES candidate_sessions(id)
     );
 
@@ -153,6 +161,12 @@ function initDb() {
   }
   if (!names.has('total_fullscreen_away_seconds')) {
     db.exec(`ALTER TABLE candidate_sessions ADD COLUMN total_fullscreen_away_seconds INTEGER NOT NULL DEFAULT 0`);
+  }
+
+  const questionCols = db.prepare(`PRAGMA table_info(session_questions)`).all() as { name: string }[];
+  const questionNames = new Set(questionCols.map((c) => c.name));
+  if (!questionNames.has('time_spent_ms')) {
+    db.exec(`ALTER TABLE session_questions ADD COLUMN time_spent_ms INTEGER NOT NULL DEFAULT 0`);
   }
 }
 
@@ -195,6 +209,43 @@ function getSessionByToken(token: string): CandidateSessionRow | undefined {
   return db.prepare('SELECT * FROM candidate_sessions WHERE token = ?').get(token) as CandidateSessionRow | undefined;
 }
 
+function getHeuristicEntry(questionId: string): HeuristicEntry | undefined {
+  const num = questionId.replace('q-', '');
+  return (heuristicMap as Record<string, HeuristicEntry>)[num];
+}
+
+function suspiciousFastThresholdMs(entry: HeuristicEntry | undefined): number {
+  if (!entry) return 4000;
+  if (entry.difficulty === 'hard') return 8000;
+  if (entry.difficulty === 'medium-hard') return 10000;
+  if (entry.difficulty === 'medium') return 6000;
+  return 4000;
+}
+
+function buildHeuristicSummary(sessionId: string, remainingSecondsAtSubmit: number) {
+  const rows = db.prepare(`SELECT question_id, is_correct, time_spent_ms FROM session_questions WHERE session_id = ?`).all(sessionId) as { question_id: string; is_correct: number | null; time_spent_ms: number }[];
+  const suspicious: { questionId: string; difficulty: string; timeSpentMs: number }[] = [];
+  let suspicionScore = 0;
+
+  for (const row of rows) {
+    if (row.is_correct !== 1) continue;
+    const entry = getHeuristicEntry(row.question_id);
+    const threshold = suspiciousFastThresholdMs(entry);
+    if ((row.time_spent_ms ?? 0) > 0 && row.time_spent_ms < threshold) {
+      suspicious.push({ questionId: row.question_id, difficulty: entry?.difficulty || 'unknown', timeSpentMs: row.time_spent_ms });
+      if (entry?.difficulty === 'hard') suspicionScore += 3;
+      else if (entry?.difficulty === 'medium-hard') suspicionScore += 2;
+      else if (entry?.difficulty === 'medium') suspicionScore += 1;
+      else suspicionScore += 0.5;
+    }
+  }
+
+  if (remainingSecondsAtSubmit <= 90) suspicionScore *= 0.7;
+
+  const level = suspicionScore >= 8 ? 'high' : suspicionScore >= 4 ? 'moderate' : 'low';
+  return { level, suspicionScore, suspiciousQuestions: suspicious.slice(0, 10) };
+}
+
 async function maybeSendInviteEmail(name: string, email: string, link: string) {
   if (!resend) return { sent: false, reason: 'resend-not-configured' };
 
@@ -213,7 +264,7 @@ async function maybeSendInviteEmail(name: string, email: string, link: string) {
             <p style="margin: 0 0 8px;"><strong>Assessment details</strong></p>
             <ul style="padding-left: 18px; margin: 0;">
               <li>One attempt only</li>
-              <li>30-minute time limit</li>
+              <li>25-minute time limit</li>
               <li>No external sources or outside assistance allowed</li>
               <li>Fullscreen is required during the test</li>
               <li>Please use a stable internet connection and complete it in one sitting</li>
@@ -401,8 +452,9 @@ app.post('/api/test/:token/submit', (req, res) => {
 
   const deadline = new Date(session.test_started_at).getTime() + TEST_DURATION_SECONDS * 1000;
   const answers = (req.body?.answers ?? {}) as Record<string, number>;
+  const questionTimes = (req.body?.questionTimes ?? {}) as Record<string, number>;
   const questionRows = db.prepare(`SELECT id, question_id FROM session_questions WHERE session_id = ?`).all(session.id) as { id: string; question_id: string }[];
-  const updateQuestion = db.prepare(`UPDATE session_questions SET selected_index = ?, is_correct = ? WHERE id = ?`);
+  const updateQuestion = db.prepare(`UPDATE session_questions SET selected_index = ?, is_correct = ?, time_spent_ms = ? WHERE id = ?`);
 
   let rawScore = 0;
   const transaction = db.transaction(() => {
@@ -411,8 +463,9 @@ app.post('/api/test/:token/submit', (req, res) => {
       if (!question) continue;
       const selected = Number.isInteger(answers[row.question_id]) ? answers[row.question_id] : null;
       const isCorrect = selected === question.answerIndex ? 1 : 0;
+      const timeSpentMs = Math.max(0, Number(questionTimes[row.question_id] ?? 0));
       if (isCorrect) rawScore += 1;
-      updateQuestion.run(selected, isCorrect, row.id);
+      updateQuestion.run(selected, isCorrect, timeSpentMs, row.id);
     }
   });
   transaction();
@@ -436,11 +489,16 @@ app.post('/api/test/:token/submit', (req, res) => {
   db.prepare(`INSERT INTO session_events (id, session_id, event_type, payload, created_at) VALUES (?, ?, 'submitted', ?, ?)`).run(nanoid(), session.id, JSON.stringify({ late, rawScore, percent, totalFullscreenAwaySeconds }), completedAt);
 
   const flaggedEvents = db.prepare(`SELECT event_type, created_at, payload FROM session_events WHERE session_id = ? AND event_type IN ('tab_switch', 'copy_attempt', 'paste_attempt', 'right_click', 'fullscreen_exit') ORDER BY created_at ASC`).all(session.id) as { event_type: string; created_at: string; payload: string }[];
+  const remainingSecondsAtSubmit = Math.max(0, Math.floor((deadline - Date.now()) / 1000));
+  const heuristicSummary = buildHeuristicSummary(session.id, remainingSecondsAtSubmit);
 
   if (resend) {
     const eventLines = flaggedEvents.length
       ? flaggedEvents.map((event) => `<li><strong>${event.event_type}</strong> at ${event.created_at}</li>`).join('')
       : '<li>No flagged events recorded.</li>';
+    const heuristicLines = heuristicSummary.suspiciousQuestions.length
+      ? heuristicSummary.suspiciousQuestions.map((row) => `<li>${row.questionId} — ${row.difficulty} — ${Math.round(row.timeSpentMs / 1000)}s</li>`).join('')
+      : '<li>No unusually fast correct questions detected.</li>';
 
     void resend.emails.send({
       from: EMAIL_FROM,
@@ -456,14 +514,18 @@ app.post('/api/test/:token/submit', (req, res) => {
           <p><strong>Copy/paste/right-click count:</strong> ${session.copy_events}</p>
           <p><strong>Fullscreen exits:</strong> ${session.fullscreen_exits}</p>
           <p><strong>Total time outside fullscreen:</strong> ${totalFullscreenAwaySeconds} seconds</p>
+          <p><strong>Heuristic review level:</strong> ${heuristicSummary.level}</p>
+          <p><strong>Heuristic suspicion score:</strong> ${heuristicSummary.suspicionScore}</p>
           <h3>Flagged events</h3>
           <ul>${eventLines}</ul>
+          <h3>Fast correct questions worth review</h3>
+          <ul>${heuristicLines}</ul>
         </div>
       `,
     });
   }
 
-  res.json({ score, rawScore, percent, late, flagged: Boolean((session.tab_switches || session.copy_events || session.fullscreen_exits || finalFlagged) > 0) });
+  res.json({ score, rawScore, percent, late, flagged: Boolean((session.tab_switches || session.copy_events || session.fullscreen_exits || finalFlagged) > 0), heuristicSummary });
 });
 
 if (isProduction && fs.existsSync(indexHtmlPath)) {

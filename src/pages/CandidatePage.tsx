@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { api } from '../lib/api';
@@ -22,6 +22,9 @@ export default function CandidatePage() {
   const [submitted, setSubmitted] = useState(false);
   const [result, setResult] = useState<{ score: number; percent: number; flagged: boolean } | null>(null);
   const [fullscreenOk, setFullscreenOk] = useState(false);
+  const [questionTimes, setQuestionTimes] = useState<Record<string, number>>({});
+  const activeQuestionRef = useRef<string | null>(null);
+  const activeSinceRef = useRef<number | null>(null);
 
   const testQuery = useQuery({
     queryKey: ['test', token],
@@ -37,7 +40,10 @@ export default function CandidatePage() {
   });
 
   const submitMutation = useMutation({
-    mutationFn: () => api<{ score: number; percent: number; flagged: boolean }>(`/test/${token}/submit`, { method: 'POST', body: JSON.stringify({ answers }) }),
+    mutationFn: () => {
+      flushActiveQuestionTime();
+      return api<{ score: number; percent: number; flagged: boolean }>(`/test/${token}/submit`, { method: 'POST', body: JSON.stringify({ answers, questionTimes }) });
+    },
     onSuccess: (data) => { setSubmitted(true); setResult(data); },
   });
 
@@ -51,9 +57,27 @@ export default function CandidatePage() {
     return () => window.clearTimeout(id);
   }, [started, timeLeft, submitted, submitMutation]);
 
+  function flushActiveQuestionTime() {
+    if (!activeQuestionRef.current || activeSinceRef.current === null) return;
+    const elapsed = Math.max(0, Date.now() - activeSinceRef.current);
+    const questionId = activeQuestionRef.current;
+    setQuestionTimes((current) => ({ ...current, [questionId]: (current[questionId] ?? 0) + elapsed }));
+    activeSinceRef.current = Date.now();
+  }
+
+  function setActiveQuestion(questionId: string) {
+    if (activeQuestionRef.current === questionId) return;
+    flushActiveQuestionTime();
+    activeQuestionRef.current = questionId;
+    activeSinceRef.current = Date.now();
+  }
+
   useEffect(() => {
     const handleVisibility = () => {
-      if (document.hidden) void api(`/test/${token}/event`, { method: 'POST', body: JSON.stringify({ type: 'tab_switch' }) });
+      if (document.hidden) {
+        flushActiveQuestionTime();
+        void api(`/test/${token}/event`, { method: 'POST', body: JSON.stringify({ type: 'tab_switch' }) });
+      }
     };
     const handleCopy = (event: ClipboardEvent) => { event.preventDefault(); void api(`/test/${token}/event`, { method: 'POST', body: JSON.stringify({ type: 'copy_attempt' }) }); };
     const handlePaste = (event: ClipboardEvent) => { event.preventDefault(); void api(`/test/${token}/event`, { method: 'POST', body: JSON.stringify({ type: 'paste_attempt' }) }); };
@@ -119,7 +143,7 @@ export default function CandidatePage() {
       {!started ? (
         <section className="card">
           <ul className="rules-list">
-            <li>30-minute hard timer</li>
+            <li>25-minute hard timer</li>
             <li>One attempt only</li>
             <li>No external sources or outside assistance</li>
             <li>Fullscreen is required during the test</li>
@@ -145,8 +169,8 @@ export default function CandidatePage() {
                 {question.imageUrl && <div className="question-image-wrap"><img className="question-image" src={`${ASSET_BASE}${question.imageUrl}`} alt={`Visual for question ${index + 1}`} /></div>}
                 <div className="options">
                   {question.options.map((option, optionIndex) => (
-                    <label key={`${question.id}-${optionIndex}`} className={`option ${answers[question.id] === optionIndex ? 'selected' : ''}`}>
-                      <input type="radio" name={question.id} checked={answers[question.id] === optionIndex} onChange={() => setAnswers((current) => ({ ...current, [question.id]: optionIndex }))} />
+                    <label key={`${question.id}-${optionIndex}`} className={`option ${answers[question.id] === optionIndex ? 'selected' : ''}`} onMouseEnter={() => setActiveQuestion(question.id)} onFocus={() => setActiveQuestion(question.id)}>
+                      <input type="radio" name={question.id} checked={answers[question.id] === optionIndex} onChange={() => { setActiveQuestion(question.id); setAnswers((current) => ({ ...current, [question.id]: optionIndex })); }} />
                       <span>{option}</span>
                     </label>
                   ))}
