@@ -761,12 +761,13 @@
   {
     "id": "q-49",
     "category": "logical-reasoning",
-    "prompt": "In the word MASTER, find two letters that are in alphabetical order and separated (in the word) by the same number of letters as separates them in the alphabet. Which of those two letters comes first in the alphabet? E . r",
+    "prompt": "In the word MASTER, find two letters that are in alphabetical order and separated (in the word) by the same number of letters as separates them in the alphabet. Which of those two letters comes first in the alphabet?",
     "options": [
       "m",
       "a",
       "t",
-      "e"
+      "e",
+      "r"
     ],
     "answerIndex": 0,
     "explanation": "",

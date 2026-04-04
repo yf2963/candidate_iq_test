@@ -153,7 +153,7 @@ export default function CandidatePage() {
         <div>
           <span className="eyebrow">Candidate assessment</span>
           <h1>{testQuery.data?.candidate.name}, begin when ready.</h1>
-          <p>One attempt only. Fullscreen is required. Question order is randomized and you cannot return to previous questions.</p>
+          <p>One attempt only. Fullscreen is required. You cannot return to previous questions.</p>
         </div>
         <div className="timer">{minutes}</div>
       </section>
@@ -165,7 +165,6 @@ export default function CandidatePage() {
             <li>One attempt only</li>
             <li>No external sources or outside assistance</li>
             <li>Fullscreen is required during the test</li>
-            <li>Questions appear in randomized order</li>
             <li>You cannot return to a previous question after moving on</li>
           </ul>
           <button className="button" onClick={beginTest} disabled={startMutation.isPending}>

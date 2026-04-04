@@ -183,7 +183,7 @@ function getPakistanNextDayEodInviteTiming(fromDate = new Date()): InviteTiming 
 
   return {
     expiresAt,
-    deadlineLabel: `${formatPakistanDeadlineLabel(expiresAt)} PKT`,
+    deadlineLabel: formatPakistanDeadlineLabel(expiresAt),
   };
 }
 
