@@ -95,6 +95,11 @@ type BulkCandidateInput = {
   email: string;
 };
 
+type InviteTiming = {
+  expiresAt: string;
+  deadlineLabel: string;
+};
+
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -149,16 +154,49 @@ function normalizeBulkCandidates(namesRaw: string, emailsRaw: string) {
   return { candidates, errors, namesCount: names.length, emailsCount: emails.length };
 }
 
-function createCandidateSession(name: string, email: string, expiresInHours = 72) {
+function formatPakistanDeadlineLabel(deadlineIso: string) {
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Karachi',
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(new Date(deadlineIso));
+}
+
+function getPakistanNextDayEodInviteTiming(fromDate = new Date()): InviteTiming {
+  const karachiParts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Karachi',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(fromDate);
+
+  const year = Number(karachiParts.find((part) => part.type === 'year')?.value);
+  const month = Number(karachiParts.find((part) => part.type === 'month')?.value);
+  const day = Number(karachiParts.find((part) => part.type === 'day')?.value);
+  const nextDayUtcMidnight = new Date(Date.UTC(year, month - 1, day + 1, 0, 0, 0));
+  const expiresAt = new Date(nextDayUtcMidnight.getTime() + ((23 * 60) + 59 - 5 * 60) * 60 * 1000).toISOString();
+
+  return {
+    expiresAt,
+    deadlineLabel: `${formatPakistanDeadlineLabel(expiresAt)} PKT`,
+  };
+}
+
+function createCandidateSession(name: string, email: string, inviteTiming?: InviteTiming) {
   const id = nanoid();
   const token = nanoid(32);
   const createdAt = nowIso();
-  const expiresAt = new Date(Date.now() + Number(expiresInHours) * 60 * 60 * 1000).toISOString();
+  const timing = inviteTiming ?? getPakistanNextDayEodInviteTiming();
 
   db.prepare(
     `INSERT INTO candidate_sessions (id, candidate_name, candidate_email, token, status, expires_at, created_at, updated_at)
      VALUES (?, ?, ?, ?, 'created', ?, ?, ?)`
-  ).run(id, name, email, token, expiresAt, createdAt, createdAt);
+  ).run(id, name, email, token, timing.expiresAt, createdAt, createdAt);
 
   const questions = pickQuestions();
   const insertQuestion = db.prepare(`INSERT INTO session_questions (id, session_id, question_id, position) VALUES (?, ?, ?, ?)`);
@@ -168,7 +206,7 @@ function createCandidateSession(name: string, email: string, expiresInHours = 72
   transaction();
 
   const publicLink = `${PUBLIC_APP_URL}/test/${token}`;
-  return { id, token, link: publicLink, expiresAt };
+  return { id, token, link: publicLink, expiresAt: timing.expiresAt, deadlineLabel: timing.deadlineLabel };
 }
 
 function adminAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
@@ -280,8 +318,73 @@ function shuffleArray<T>(items: T[]) {
   return shuffled;
 }
 
+function heuristicDifficultyBucket(questionId: string) {
+  const entry = getHeuristicEntry(questionId);
+  const label = entry?.difficulty ?? 'medium';
+  if (label.includes('hard')) return 'hard';
+  if (label.includes('easy')) return 'easy';
+  return 'medium';
+}
+
+function distributeCount(total: number, weights: number[]) {
+  const raw = weights.map((weight) => total * weight);
+  const counts = raw.map((value) => Math.floor(value));
+  let remaining = total - counts.reduce((sum, value) => sum + value, 0);
+
+  const order = raw
+    .map((value, index) => ({ index, remainder: value - Math.floor(value) }))
+    .sort((a, b) => b.remainder - a.remainder);
+
+  for (let i = 0; i < order.length && remaining > 0; i += 1) {
+    counts[order[i].index] += 1;
+    remaining -= 1;
+  }
+
+  return counts;
+}
+
 function pickQuestions(): Question[] {
-  return shuffleArray(questionBank.slice(0, QUESTION_COUNT));
+  const pool = questionBank.slice(0, QUESTION_COUNT);
+  const easy = pool.filter((question) => heuristicDifficultyBucket(question.id) === 'easy');
+  const medium = pool.filter((question) => heuristicDifficultyBucket(question.id) === 'medium');
+  const hard = pool.filter((question) => heuristicDifficultyBucket(question.id) === 'hard');
+  const batchCount = 8;
+  const batchSize = Math.floor(QUESTION_COUNT / batchCount);
+  const remainder = QUESTION_COUNT % batchCount;
+  const ordered: Question[] = [];
+  let easyPool = shuffleArray(easy);
+  let mediumPool = shuffleArray(medium);
+  let hardPool = shuffleArray(hard);
+
+  for (let batchIndex = 0; batchIndex < batchCount; batchIndex += 1) {
+    const currentBatchSize = batchSize + (batchIndex < remainder ? 1 : 0);
+    const [targetEasy, targetMedium, targetHard] = distributeCount(currentBatchSize, [0.3, 0.45, 0.25]);
+
+    const batch: Question[] = [];
+    const pull = (bucket: Question[], desired: number) => {
+      const taken = bucket.splice(0, Math.min(desired, bucket.length));
+      batch.push(...taken);
+      return desired - taken.length;
+    };
+
+    let shortEasy = pull(easyPool, targetEasy);
+    let shortMedium = pull(mediumPool, targetMedium);
+    let shortHard = pull(hardPool, targetHard);
+    let remaining = shortEasy + shortMedium + shortHard;
+
+    if (remaining > 0) {
+      const leftovers = shuffleArray([...easyPool, ...mediumPool, ...hardPool]);
+      batch.push(...leftovers.slice(0, remaining));
+      const usedIds = new Set(batch.map((question) => question.id));
+      easyPool = easyPool.filter((question) => !usedIds.has(question.id));
+      mediumPool = mediumPool.filter((question) => !usedIds.has(question.id));
+      hardPool = hardPool.filter((question) => !usedIds.has(question.id));
+    }
+
+    ordered.push(...shuffleArray(batch));
+  }
+
+  return ordered;
 }
 
 function serializePublicQuestion(question: Question) {
@@ -361,7 +464,7 @@ function buildHeuristicSummary(sessionId: string, remainingSecondsAtSubmit: numb
   return { level, suspicionScore: boundedScore, suspiciousQuestions: suspicious.slice(0, 10) };
 }
 
-async function maybeSendInviteEmail(name: string, email: string, link: string) {
+async function maybeSendInviteEmail(name: string, email: string, link: string, deadlineLabel: string) {
   if (!resend) return { sent: false, reason: 'resend-not-configured' };
 
   await resend.emails.send({
@@ -383,12 +486,14 @@ async function maybeSendInviteEmail(name: string, email: string, link: string) {
               <li>No external sources or outside assistance allowed</li>
               <li>Fullscreen is required during the test</li>
               <li>Please use a stable internet connection and complete it in one sitting</li>
+              <li>Deadline: ${deadlineLabel}</li>
             </ul>
           </div>
           <p style="margin: 0 0 24px;">When you’re ready, use the button below to begin:</p>
           <p style="margin: 0 0 28px;">
             <a href="${link}" style="display: inline-block; background: #4f46e5; color: #ffffff; text-decoration: none; font-weight: 600; padding: 14px 22px; border-radius: 10px;">Start Assessment</a>
           </p>
+          <p style="margin: 0 0 16px; color: #4b5563;">This link expires automatically at the deadline above.</p>
           <p style="margin: 0 0 16px; color: #4b5563;">If you experience any technical issue, you can reply to this email.</p>
           <p style="margin: 0; color: #4b5563;">Best,<br/>NeoDym</p>
         </div>
@@ -450,19 +555,20 @@ app.get('/api/admin/summary', adminAuth, (_req, res) => {
 });
 
 app.post('/api/admin/candidates', adminAuth, async (req, res) => {
-  const { name, email, expiresInHours = 72, sendEmail = false } = req.body ?? {};
+  const { name, email, sendEmail = false } = req.body ?? {};
   if (!name || !email) return res.status(400).json({ error: 'name and email are required' });
   if (!isValidEmail(String(email).trim().toLowerCase())) return res.status(400).json({ error: 'valid email is required' });
 
-  const created = createCandidateSession(String(name).trim(), String(email).trim().toLowerCase(), Number(expiresInHours));
+  const inviteTiming = getPakistanNextDayEodInviteTiming();
+  const created = createCandidateSession(String(name).trim(), String(email).trim().toLowerCase(), inviteTiming);
   let emailResult: { sent: boolean; reason?: string } | null = null;
-  if (sendEmail) emailResult = await maybeSendInviteEmail(String(name).trim(), String(email).trim().toLowerCase(), created.link);
+  if (sendEmail) emailResult = await maybeSendInviteEmail(String(name).trim(), String(email).trim().toLowerCase(), created.link, created.deadlineLabel);
 
   res.json({ ...created, emailResult });
 });
 
 app.post('/api/admin/candidates/bulk', adminAuth, async (req, res) => {
-  const { names = '', emails = '', expiresInHours = 72, sendEmail = false } = req.body ?? {};
+  const { names = '', emails = '', sendEmail = false } = req.body ?? {};
   const normalized = normalizeBulkCandidates(String(names), String(emails));
 
   if (normalized.errors.length) {
@@ -486,9 +592,10 @@ app.post('/api/admin/candidates/bulk', adminAuth, async (req, res) => {
     });
   }
 
+  const inviteTiming = getPakistanNextDayEodInviteTiming();
   const createdCandidates = normalized.candidates.map((candidate) => ({
     ...candidate,
-    ...createCandidateSession(candidate.name, candidate.email, Number(expiresInHours)),
+    ...createCandidateSession(candidate.name, candidate.email, inviteTiming),
   }));
 
   const emailResults = sendEmail
@@ -496,7 +603,7 @@ app.post('/api/admin/candidates/bulk', adminAuth, async (req, res) => {
         createdCandidates.map(async (candidate) => ({
           name: candidate.name,
           email: candidate.email,
-          ...(await maybeSendInviteEmail(candidate.name, candidate.email, candidate.link)),
+          ...(await maybeSendInviteEmail(candidate.name, candidate.email, candidate.link, candidate.deadlineLabel)),
         }))
       )
     : [];

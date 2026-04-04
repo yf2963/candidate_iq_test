@@ -17,6 +17,19 @@ type Session = {
   flagged: number;
 };
 
+type InviteResponse = {
+  link: string;
+  expiresAt: string;
+  deadlineLabel: string;
+  emailResult?: { sent: boolean; reason?: string };
+};
+
+type BulkInviteResponse = {
+  createdCount: number;
+  sentCount: number;
+  candidates: { id: string; name: string; email: string; link: string; expiresAt: string; deadlineLabel: string }[];
+};
+
 type BulkPreview = {
   pairs: { name: string; email: string }[];
   errors: string[];
@@ -59,10 +72,11 @@ export default function AdminPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [link, setLink] = useState('');
+  const [singleDeadlineLabel, setSingleDeadlineLabel] = useState('');
   const [sendEmail, setSendEmail] = useState(true);
   const [bulkNames, setBulkNames] = useState('');
   const [bulkEmails, setBulkEmails] = useState('');
-  const [bulkResult, setBulkResult] = useState<{ createdCount: number; sentCount: number } | null>(null);
+  const [bulkResult, setBulkResult] = useState<{ createdCount: number; sentCount: number; deadlineLabel: string } | null>(null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -85,12 +99,13 @@ export default function AdminPage() {
   const bulkPreview = useMemo(() => parseBulkFields(bulkNames, bulkEmails), [bulkNames, bulkEmails]);
 
   const createMutation = useMutation({
-    mutationFn: () => api<{ link: string; emailResult?: { sent: boolean; reason?: string } }>('/admin/candidates', {
+    mutationFn: () => api<InviteResponse>('/admin/candidates', {
       method: 'POST',
       body: JSON.stringify({ name, email, sendEmail }),
     }),
     onSuccess: (data) => {
       setLink(data.link);
+      setSingleDeadlineLabel(data.deadlineLabel);
       setName('');
       setEmail('');
       setBulkResult(null);
@@ -99,15 +114,16 @@ export default function AdminPage() {
   });
 
   const bulkCreateMutation = useMutation({
-    mutationFn: () => api<{ createdCount: number; sentCount: number }>('/admin/candidates/bulk', {
+    mutationFn: () => api<BulkInviteResponse>('/admin/candidates/bulk', {
       method: 'POST',
       body: JSON.stringify({ names: bulkNames, emails: bulkEmails, sendEmail }),
     }),
     onSuccess: (data) => {
-      setBulkResult({ createdCount: data.createdCount, sentCount: data.sentCount });
+      setBulkResult({ createdCount: data.createdCount, sentCount: data.sentCount, deadlineLabel: data.candidates[0]?.deadlineLabel || '' });
       setBulkNames('');
       setBulkEmails('');
       setLink('');
+      setSingleDeadlineLabel('');
       queryClient.invalidateQueries({ queryKey: ['summary'] });
     },
   });
@@ -154,7 +170,7 @@ export default function AdminPage() {
               </button>
             </div>
             {createMutation.error && <div className="error">{(createMutation.error as Error).message}</div>}
-            {link && <div className="result-block"><strong>Candidate link</strong><code>{link}</code></div>}
+            {link && <div className="result-block"><strong>Candidate link</strong><code>{link}</code><div>Deadline: {singleDeadlineLabel}</div></div>}
           </div>
 
           <div className="admin-form-panel">
@@ -197,6 +213,7 @@ export default function AdminPage() {
                 <strong>Batch complete</strong>
                 <div>Created: {bulkResult.createdCount}</div>
                 <div>Emails sent: {bulkResult.sentCount}</div>
+                <div>Deadline: {bulkResult.deadlineLabel}</div>
               </div>
             )}
           </div>
