@@ -33,6 +33,7 @@ th, td { text-align: left; padding: 0.85rem 0.75rem; border-bottom: 1px solid rg
 .sticky-header { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; position: sticky; top: 0; z-index: 5; }
 .timer { font-size: 2rem; font-weight: 800; color: #9db0ff; }
 .question-list { display: grid; gap: 1rem; margin-bottom: 1.5rem; }
+.question-progress { margin-bottom: 1rem; color: #b7c3ea; font-weight: 600; }
 .question-card { padding: 1rem; border-radius: 18px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); }
 .question-meta { display: flex; gap: 0.75rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: #96a3cb; }
 .question-image-wrap { margin-top: 1rem; }

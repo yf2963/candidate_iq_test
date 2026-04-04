@@ -23,6 +23,7 @@ export default function CandidatePage() {
   const [result, setResult] = useState<{ score: number; percent: number; flagged: boolean } | null>(null);
   const [fullscreenOk, setFullscreenOk] = useState(false);
   const [questionTimes, setQuestionTimes] = useState<Record<string, number>>({});
+  const [currentIndex, setCurrentIndex] = useState(0);
   const activeQuestionRef = useRef<string | null>(null);
   const activeSinceRef = useRef<number | null>(null);
 
@@ -112,8 +113,14 @@ export default function CandidatePage() {
 
   async function beginTest() {
     await requestFullscreenAgain();
+    setCurrentIndex(0);
     startMutation.mutate();
   }
+
+  const questions = testQuery.data?.questions ?? [];
+  const currentQuestion = questions[currentIndex] ?? null;
+  const currentAnswer = currentQuestion ? answers[currentQuestion.id] : undefined;
+  const isLastQuestion = currentIndex === questions.length - 1;
 
   const minutes = useMemo(() => {
     if (timeLeft === null) return '--:--';
@@ -129,13 +136,24 @@ export default function CandidatePage() {
     return <main className="shell"><section className="card"><h1>Assessment submitted</h1><p>Thank you for completing the assessment. Our team will review your submission and be in touch regarding next steps.</p></section></main>;
   }
 
+  function goToNextQuestion() {
+    if (!currentQuestion || currentAnswer === undefined) return;
+    flushActiveQuestionTime();
+    if (isLastQuestion) {
+      submitMutation.mutate();
+      return;
+    }
+    setCurrentIndex((index) => Math.min(index + 1, questions.length - 1));
+    setActiveQuestion(questions[Math.min(currentIndex + 1, questions.length - 1)]?.id || '');
+  }
+
   return (
     <main className="shell candidate-shell">
       <section className="card sticky-header">
         <div>
           <span className="eyebrow">Candidate assessment</span>
           <h1>{testQuery.data?.candidate.name}, begin when ready.</h1>
-          <p>One attempt only. Fullscreen is required.</p>
+          <p>One attempt only. Fullscreen is required. Question order is randomized and you cannot return to previous questions.</p>
         </div>
         <div className="timer">{minutes}</div>
       </section>
@@ -147,6 +165,8 @@ export default function CandidatePage() {
             <li>One attempt only</li>
             <li>No external sources or outside assistance</li>
             <li>Fullscreen is required during the test</li>
+            <li>Questions appear in randomized order</li>
+            <li>You cannot return to a previous question after moving on</li>
           </ul>
           <button className="button" onClick={beginTest} disabled={startMutation.isPending}>
             {startMutation.isPending ? 'Starting…' : 'Enter fullscreen and start test'}
@@ -161,24 +181,30 @@ export default function CandidatePage() {
             </div>
           )}
         <section className="card">
-          <div className="question-list">
-            {testQuery.data?.questions.map((question, index) => (
-              <article key={question.id} className="question-card">
-                <div className="question-meta"><span>Q{index + 1}</span><span>{question.category}</span></div>
-                <h3>{question.prompt}</h3>
-                {question.imageUrl && <div className="question-image-wrap"><img className="question-image" src={`${ASSET_BASE}${question.imageUrl}`} alt={`Visual for question ${index + 1}`} /></div>}
+          {currentQuestion && (
+            <>
+              <div className="question-progress">Question {currentIndex + 1} of {questions.length}</div>
+              <article key={currentQuestion.id} className="question-card">
+                <div className="question-meta"><span>Q{currentIndex + 1}</span><span>{currentQuestion.category}</span></div>
+                <h3>{currentQuestion.prompt}</h3>
+                {currentQuestion.imageUrl && <div className="question-image-wrap"><img className="question-image" src={`${ASSET_BASE}${currentQuestion.imageUrl}`} alt={`Visual for question ${currentIndex + 1}`} /></div>}
                 <div className="options">
-                  {question.options.map((option, optionIndex) => (
-                    <label key={`${question.id}-${optionIndex}`} className={`option ${answers[question.id] === optionIndex ? 'selected' : ''}`} onMouseEnter={() => setActiveQuestion(question.id)} onFocus={() => setActiveQuestion(question.id)}>
-                      <input type="radio" name={question.id} checked={answers[question.id] === optionIndex} onChange={() => { setActiveQuestion(question.id); setAnswers((current) => ({ ...current, [question.id]: optionIndex })); }} />
+                  {currentQuestion.options.map((option, optionIndex) => (
+                    <label key={`${currentQuestion.id}-${optionIndex}`} className={`option ${answers[currentQuestion.id] === optionIndex ? 'selected' : ''}`} onMouseEnter={() => setActiveQuestion(currentQuestion.id)} onFocus={() => setActiveQuestion(currentQuestion.id)}>
+                      <input type="radio" name={currentQuestion.id} checked={answers[currentQuestion.id] === optionIndex} onChange={() => { setActiveQuestion(currentQuestion.id); setAnswers((current) => ({ ...current, [currentQuestion.id]: optionIndex })); }} />
                       <span>{option}</span>
                     </label>
                   ))}
                 </div>
               </article>
-            ))}
-          </div>
-          <button className="button" onClick={() => submitMutation.mutate()} disabled={submitMutation.isPending}>{submitMutation.isPending ? 'Submitting…' : 'Submit test'}</button>
+              <div className="action-row">
+                <span className="bulk-help">You cannot return to previous questions after moving forward.</span>
+                <button className="button" onClick={goToNextQuestion} disabled={currentAnswer === undefined || submitMutation.isPending}>
+                  {submitMutation.isPending ? 'Submitting…' : isLastQuestion ? 'Finish and submit' : 'Next question'}
+                </button>
+              </div>
+            </>
+          )}
         </section>
         </>
       )}
