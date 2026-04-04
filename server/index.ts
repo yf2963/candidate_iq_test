@@ -90,6 +90,87 @@ type CandidateSessionRow = {
   total_fullscreen_away_seconds?: number;
 };
 
+type BulkCandidateInput = {
+  name: string;
+  email: string;
+};
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function normalizeBulkCandidates(namesRaw: string, emailsRaw: string) {
+  const splitValues = (value: string) =>
+    value
+      .split(/[\n,]+/)
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+
+  const names = splitValues(namesRaw);
+  const emails = splitValues(emailsRaw).map((email) => email.toLowerCase());
+  const errors: string[] = [];
+
+  if (!names.length) errors.push('Add at least one candidate name.');
+  if (!emails.length) errors.push('Add at least one candidate email.');
+  if (names.length !== emails.length) {
+    errors.push(`Name/email count mismatch: ${names.length} names and ${emails.length} emails.`);
+  }
+
+  const candidates: BulkCandidateInput[] = [];
+  const seenEmails = new Set<string>();
+  const pairCount = Math.min(names.length, emails.length);
+
+  for (let index = 0; index < pairCount; index += 1) {
+    const name = names[index];
+    const email = emails[index];
+    const rowNumber = index + 1;
+
+    if (!name) {
+      errors.push(`Row ${rowNumber}: missing name.`);
+      continue;
+    }
+    if (!email) {
+      errors.push(`Row ${rowNumber}: missing email.`);
+      continue;
+    }
+    if (!isValidEmail(email)) {
+      errors.push(`Row ${rowNumber}: invalid email (${email}).`);
+      continue;
+    }
+    if (seenEmails.has(email)) {
+      errors.push(`Row ${rowNumber}: duplicate email in this batch (${email}).`);
+      continue;
+    }
+
+    seenEmails.add(email);
+    candidates.push({ name, email });
+  }
+
+  return { candidates, errors, namesCount: names.length, emailsCount: emails.length };
+}
+
+function createCandidateSession(name: string, email: string, expiresInHours = 72) {
+  const id = nanoid();
+  const token = nanoid(32);
+  const createdAt = nowIso();
+  const expiresAt = new Date(Date.now() + Number(expiresInHours) * 60 * 60 * 1000).toISOString();
+
+  db.prepare(
+    `INSERT INTO candidate_sessions (id, candidate_name, candidate_email, token, status, expires_at, created_at, updated_at)
+     VALUES (?, ?, ?, ?, 'created', ?, ?, ?)`
+  ).run(id, name, email, token, expiresAt, createdAt, createdAt);
+
+  const questions = pickQuestions();
+  const insertQuestion = db.prepare(`INSERT INTO session_questions (id, session_id, question_id, position) VALUES (?, ?, ?, ?)`);
+  const transaction = db.transaction(() => {
+    questions.forEach((question, index) => insertQuestion.run(nanoid(), id, question.id, index + 1));
+  });
+  transaction();
+
+  const publicLink = `${PUBLIC_APP_URL}/test/${token}`;
+  return { id, token, link: publicLink, expiresAt };
+}
+
 function adminAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
   const legacyToken = req.headers['x-admin-token'];
   if (legacyToken === ADMIN_TOKEN) return next();
@@ -362,29 +443,67 @@ app.get('/api/admin/summary', adminAuth, (_req, res) => {
 app.post('/api/admin/candidates', adminAuth, async (req, res) => {
   const { name, email, expiresInHours = 72, sendEmail = false } = req.body ?? {};
   if (!name || !email) return res.status(400).json({ error: 'name and email are required' });
+  if (!isValidEmail(String(email).trim().toLowerCase())) return res.status(400).json({ error: 'valid email is required' });
 
-  const id = nanoid();
-  const token = nanoid(32);
-  const createdAt = nowIso();
-  const expiresAt = new Date(Date.now() + Number(expiresInHours) * 60 * 60 * 1000).toISOString();
-
-  db.prepare(
-    `INSERT INTO candidate_sessions (id, candidate_name, candidate_email, token, status, expires_at, created_at, updated_at)
-     VALUES (?, ?, ?, ?, 'created', ?, ?, ?)`
-  ).run(id, name, email, token, expiresAt, createdAt, createdAt);
-
-  const questions = pickQuestions();
-  const insertQuestion = db.prepare(`INSERT INTO session_questions (id, session_id, question_id, position) VALUES (?, ?, ?, ?)`);
-  const transaction = db.transaction(() => {
-    questions.forEach((question, index) => insertQuestion.run(nanoid(), id, question.id, index + 1));
-  });
-  transaction();
-
-  const publicLink = `${PUBLIC_APP_URL}/test/${token}`;
+  const created = createCandidateSession(String(name).trim(), String(email).trim().toLowerCase(), Number(expiresInHours));
   let emailResult: { sent: boolean; reason?: string } | null = null;
-  if (sendEmail) emailResult = await maybeSendInviteEmail(name, email, publicLink);
+  if (sendEmail) emailResult = await maybeSendInviteEmail(String(name).trim(), String(email).trim().toLowerCase(), created.link);
 
-  res.json({ id, token, link: publicLink, expiresAt, emailResult });
+  res.json({ ...created, emailResult });
+});
+
+app.post('/api/admin/candidates/bulk', adminAuth, async (req, res) => {
+  const { names = '', emails = '', expiresInHours = 72, sendEmail = false } = req.body ?? {};
+  const normalized = normalizeBulkCandidates(String(names), String(emails));
+
+  if (normalized.errors.length) {
+    return res.status(400).json({
+      error: normalized.errors[0],
+      errors: normalized.errors,
+      previewCount: normalized.candidates.length,
+    });
+  }
+
+  const existingRows = db
+    .prepare(`SELECT candidate_email FROM candidate_sessions WHERE candidate_email IN (${normalized.candidates.map(() => '?').join(', ')})`)
+    .all(...normalized.candidates.map((candidate) => candidate.email)) as { candidate_email: string }[];
+
+  const existingEmails = new Set(existingRows.map((row) => row.candidate_email.toLowerCase()));
+  if (existingEmails.size) {
+    return res.status(400).json({
+      error: 'Some emails already exist in the system.',
+      errors: Array.from(existingEmails).map((email) => `Already exists: ${email}`),
+      previewCount: normalized.candidates.length,
+    });
+  }
+
+  const createdCandidates = normalized.candidates.map((candidate) => ({
+    ...candidate,
+    ...createCandidateSession(candidate.name, candidate.email, Number(expiresInHours)),
+  }));
+
+  const emailResults = sendEmail
+    ? await Promise.all(
+        createdCandidates.map(async (candidate) => ({
+          name: candidate.name,
+          email: candidate.email,
+          ...(await maybeSendInviteEmail(candidate.name, candidate.email, candidate.link)),
+        }))
+      )
+    : [];
+
+  res.json({
+    createdCount: createdCandidates.length,
+    sentCount: emailResults.filter((result) => result.sent).length,
+    candidates: createdCandidates.map((candidate) => ({
+      id: candidate.id,
+      name: candidate.name,
+      email: candidate.email,
+      link: candidate.link,
+      expiresAt: candidate.expiresAt,
+    })),
+    emailResults,
+  });
 });
 
 app.get('/api/admin/export', adminAuth, (_req, res) => {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
@@ -17,11 +17,52 @@ type Session = {
   flagged: number;
 };
 
+type BulkPreview = {
+  pairs: { name: string; email: string }[];
+  errors: string[];
+};
+
+function parseBulkFields(namesRaw: string, emailsRaw: string): BulkPreview {
+  const splitValues = (value: string) =>
+    value
+      .split(/[\n,]+/)
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+
+  const names = splitValues(namesRaw);
+  const emails = splitValues(emailsRaw).map((email) => email.toLowerCase());
+  const errors: string[] = [];
+
+  if (names.length && emails.length && names.length !== emails.length) {
+    errors.push(`Name/email count mismatch: ${names.length} names and ${emails.length} emails.`);
+  }
+
+  const seenEmails = new Set<string>();
+  const pairs = names.slice(0, Math.min(names.length, emails.length)).flatMap((name, index) => {
+    const email = emails[index];
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.push(`Row ${index + 1}: invalid email (${email}).`);
+      return [];
+    }
+    if (seenEmails.has(email)) {
+      errors.push(`Row ${index + 1}: duplicate email in this batch (${email}).`);
+      return [];
+    }
+    seenEmails.add(email);
+    return [{ name, email }];
+  });
+
+  return { pairs, errors };
+}
+
 export default function AdminPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [link, setLink] = useState('');
   const [sendEmail, setSendEmail] = useState(true);
+  const [bulkNames, setBulkNames] = useState('');
+  const [bulkEmails, setBulkEmails] = useState('');
+  const [bulkResult, setBulkResult] = useState<{ createdCount: number; sentCount: number } | null>(null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -41,6 +82,8 @@ export default function AdminPage() {
     enabled: !!me.data,
   });
 
+  const bulkPreview = useMemo(() => parseBulkFields(bulkNames, bulkEmails), [bulkNames, bulkEmails]);
+
   const createMutation = useMutation({
     mutationFn: () => api<{ link: string; emailResult?: { sent: boolean; reason?: string } }>('/admin/candidates', {
       method: 'POST',
@@ -50,6 +93,21 @@ export default function AdminPage() {
       setLink(data.link);
       setName('');
       setEmail('');
+      setBulkResult(null);
+      queryClient.invalidateQueries({ queryKey: ['summary'] });
+    },
+  });
+
+  const bulkCreateMutation = useMutation({
+    mutationFn: () => api<{ createdCount: number; sentCount: number }>('/admin/candidates/bulk', {
+      method: 'POST',
+      body: JSON.stringify({ names: bulkNames, emails: bulkEmails, sendEmail }),
+    }),
+    onSuccess: (data) => {
+      setBulkResult({ createdCount: data.createdCount, sentCount: data.sentCount });
+      setBulkNames('');
+      setBulkEmails('');
+      setLink('');
       queryClient.invalidateQueries({ queryKey: ['summary'] });
     },
   });
@@ -72,27 +130,77 @@ export default function AdminPage() {
           </div>
           <button className="button secondary" onClick={() => logout.mutate()}>Logout</button>
         </div>
-        <div className="inline-fields">
-          <label className="field">
-            <span>Name</span>
-            <input value={name} onChange={(e) => setName(e.target.value)} />
-          </label>
-          <label className="field">
-            <span>Email</span>
-            <input value={email} onChange={(e) => setEmail(e.target.value)} />
-          </label>
+
+        <div className="admin-form-grid">
+          <div className="admin-form-panel">
+            <h2>Single invite</h2>
+            <label className="checkbox-row">
+              <input type="checkbox" checked={sendEmail} onChange={(e) => setSendEmail(e.target.checked)} />
+              <span>Send candidate invite email</span>
+            </label>
+            <div className="inline-fields">
+              <label className="field">
+                <span>Name</span>
+                <input value={name} onChange={(e) => setName(e.target.value)} />
+              </label>
+              <label className="field">
+                <span>Email</span>
+                <input value={email} onChange={(e) => setEmail(e.target.value)} />
+              </label>
+            </div>
+            <div className="action-row">
+              <button className="button" onClick={() => createMutation.mutate()} disabled={!name || !email || createMutation.isPending}>
+                {createMutation.isPending ? 'Generating…' : 'Generate one-time link'}
+              </button>
+            </div>
+            {createMutation.error && <div className="error">{(createMutation.error as Error).message}</div>}
+            {link && <div className="result-block"><strong>Candidate link</strong><code>{link}</code></div>}
+          </div>
+
+          <div className="admin-form-panel">
+            <h2>Bulk invite</h2>
+            <p className="bulk-help">Paste one per line if you can. Commas also work, but lines are less cursed.</p>
+            <div className="bulk-grid">
+              <label className="field">
+                <span>Names</span>
+                <textarea value={bulkNames} onChange={(e) => setBulkNames(e.target.value)} rows={8} placeholder={'Alice Smith\nBob Khan\nCharlie Noor'} />
+              </label>
+              <label className="field">
+                <span>Emails</span>
+                <textarea value={bulkEmails} onChange={(e) => setBulkEmails(e.target.value)} rows={8} placeholder={'alice@gmail.com\nbob@gmail.com\ncharlie@gmail.com'} />
+              </label>
+            </div>
+            <div className="action-row">
+              <label className="checkbox-row">
+                <input type="checkbox" checked={sendEmail} onChange={(e) => setSendEmail(e.target.checked)} />
+                <span>Send candidate invite email</span>
+              </label>
+              <button
+                className="button"
+                onClick={() => bulkCreateMutation.mutate()}
+                disabled={!bulkPreview.pairs.length || bulkPreview.errors.length > 0 || bulkCreateMutation.isPending}
+              >
+                {bulkCreateMutation.isPending ? 'Sending batch…' : `Create ${bulkPreview.pairs.length || ''} candidates`}
+              </button>
+            </div>
+            <div className="bulk-preview">
+              <strong>Preview:</strong> {bulkPreview.pairs.length} valid pair{bulkPreview.pairs.length === 1 ? '' : 's'}
+              {!!bulkPreview.errors.length && (
+                <ul>
+                  {bulkPreview.errors.map((error) => <li key={error}>{error}</li>)}
+                </ul>
+              )}
+            </div>
+            {bulkCreateMutation.error && <div className="error">{(bulkCreateMutation.error as Error).message}</div>}
+            {bulkResult && (
+              <div className="result-block">
+                <strong>Batch complete</strong>
+                <div>Created: {bulkResult.createdCount}</div>
+                <div>Emails sent: {bulkResult.sentCount}</div>
+              </div>
+            )}
+          </div>
         </div>
-        <div className="action-row">
-          <label className="checkbox-row">
-            <input type="checkbox" checked={sendEmail} onChange={(e) => setSendEmail(e.target.checked)} />
-            <span>Send candidate invite email</span>
-          </label>
-          <button className="button" onClick={() => createMutation.mutate()} disabled={!name || !email || createMutation.isPending}>
-            {createMutation.isPending ? 'Generating…' : 'Generate one-time link'}
-          </button>
-        </div>
-        {createMutation.error && <div className="error">{(createMutation.error as Error).message}</div>}
-        {link && <div className="result-block"><strong>Candidate link</strong><code>{link}</code></div>}
       </section>
 
       <section className="card">

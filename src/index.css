@@ -8,7 +8,7 @@
 * { box-sizing: border-box; }
 body { margin: 0; background: radial-gradient(circle at top, #18233f, #0b1020 55%); }
 a { color: inherit; text-decoration: none; }
-button, input { font: inherit; }
+button, input, textarea { font: inherit; }
 .shell { width: min(1120px, calc(100% - 2rem)); margin: 0 auto; padding: 2rem 0 4rem; }
 .grid { display: grid; gap: 1.5rem; }
 .card { background: rgba(12, 19, 39, 0.88); border: 1px solid rgba(125, 149, 255, 0.18); border-radius: 24px; padding: 1.5rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28); }
@@ -17,8 +17,10 @@ button, input { font: inherit; }
 .actions, .toolbar { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: space-between; align-items: center; }
 .inline-fields { display: grid; grid-template-columns: repeat(2, minmax(220px, 320px)); gap: 1.25rem; align-items: end; justify-content: start; }
 .field { display: flex; flex-direction: column; gap: 0.35rem; margin: 1rem 0; }
-.field input { border-radius: 14px; border: 1px solid rgba(143, 165, 255, 0.2); background: rgba(255,255,255,0.04); color: white; padding: 0.85rem 1rem; width: 100%; min-width: 0; }
+.field input, .field textarea { border-radius: 14px; border: 1px solid rgba(143, 165, 255, 0.2); background: rgba(255,255,255,0.04); color: white; padding: 0.85rem 1rem; width: 100%; min-width: 0; }
+.field textarea { resize: vertical; min-height: 180px; }
 .button { display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 999px; padding: 0.9rem 1.35rem; color: white; background: linear-gradient(135deg, #5d72ff, #7d4dff); cursor: pointer; font-weight: 700; }
+.button:disabled { opacity: 0.55; cursor: not-allowed; }
 .button.secondary { background: rgba(255,255,255,0.08); }
 .result-block, .warning, .error { margin-top: 1rem; padding: 1rem; border-radius: 16px; background: rgba(255,255,255,0.05); }
 .warning { color: #ffce73; }
@@ -45,5 +47,11 @@ code { display: block; overflow-wrap: anywhere; margin-top: 0.5rem; }
 .action-row { display: flex; gap: 1.5rem; align-items: center; justify-content: flex-start; flex-wrap: wrap; margin-top: 0.5rem; }
 .checkbox-row, .rules-list { margin: 0.5rem 0; }
 .checkbox-row { display: inline-flex; align-items: center; gap: 0.55rem; max-width: 320px; }
+.admin-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; margin-top: 1rem; }
+.admin-form-panel { padding: 1rem; border-radius: 18px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); }
+.bulk-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.bulk-help { color: #b7c3ea; margin: 0.5rem 0 0; }
+.bulk-preview { margin-top: 1rem; padding: 1rem; border-radius: 16px; background: rgba(255,255,255,0.04); }
+.bulk-preview ul { margin: 0.5rem 0 0; padding-left: 1.25rem; color: #ffce73; }
 .link { display: inline-block; margin-top: 1rem; color: #a6b7ff; }
-@media (max-width: 800px) { .sticky-header { flex-direction: column; } .inline-fields { grid-template-columns: 1fr; } .action-row { align-items: stretch; } }
+@media (max-width: 800px) { .sticky-header { flex-direction: column; } .inline-fields, .admin-form-grid, .bulk-grid { grid-template-columns: 1fr; } .action-row { align-items: stretch; } }
