@@ -464,44 +464,73 @@ function buildHeuristicSummary(sessionId: string, remainingSecondsAtSubmit: numb
   return { level, suspicionScore: boundedScore, suspiciousQuestions: suspicious.slice(0, 10) };
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function maybeSendInviteEmail(name: string, email: string, link: string, deadlineLabel: string) {
   if (!resend) return { sent: false, reason: 'resend-not-configured' };
 
-  await resend.emails.send({
-    from: EMAIL_FROM,
-    to: [email],
-    subject: 'NeoDym Assessment Invitation',
-    html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827; background: #f3f4f6; padding: 32px 16px;">
-        <div style="max-width: 640px; margin: 0 auto; background: #ffffff; border-radius: 16px; padding: 32px; border: 1px solid #e5e7eb;">
-          <p style="font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #6366f1; margin: 0 0 12px;">NeoDym Candidate Assessment</p>
-          <h1 style="font-size: 28px; line-height: 1.2; margin: 0 0 16px; color: #111827;">You’re invited to complete the next step in the NeoDym hiring process</h1>
-          <p style="margin: 0 0 16px;">Hi ${name},</p>
-          <p style="margin: 0 0 16px;">Thank you for your interest in NeoDym. As part of our evaluation process, we ask selected candidates to complete a timed reasoning assessment.</p>
-          <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin: 20px 0;">
-            <p style="margin: 0 0 8px;"><strong>Assessment details</strong></p>
-            <ul style="padding-left: 18px; margin: 0;">
-              <li>One attempt only</li>
-              <li>25-minute time limit</li>
-              <li>No external sources or outside assistance allowed</li>
-              <li>Fullscreen is required during the test</li>
-              <li>Please use a stable internet connection and complete it in one sitting</li>
-              <li>Deadline: ${deadlineLabel}</li>
-            </ul>
+  try {
+    await resend.emails.send({
+      from: EMAIL_FROM,
+      to: [email],
+      subject: 'NeoDym Assessment Invitation',
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827; background: #f3f4f6; padding: 32px 16px;">
+          <div style="max-width: 640px; margin: 0 auto; background: #ffffff; border-radius: 16px; padding: 32px; border: 1px solid #e5e7eb;">
+            <p style="font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #6366f1; margin: 0 0 12px;">NeoDym Candidate Assessment</p>
+            <h1 style="font-size: 28px; line-height: 1.2; margin: 0 0 16px; color: #111827;">You’re invited to complete the next step in the NeoDym hiring process</h1>
+            <p style="margin: 0 0 16px;">Hi ${name},</p>
+            <p style="margin: 0 0 16px;">Thank you for your interest in NeoDym. As part of our evaluation process, we ask selected candidates to complete a timed reasoning assessment.</p>
+            <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin: 20px 0;">
+              <p style="margin: 0 0 8px;"><strong>Assessment details</strong></p>
+              <ul style="padding-left: 18px; margin: 0;">
+                <li>One attempt only</li>
+                <li>25-minute time limit</li>
+                <li>No external sources or outside assistance allowed</li>
+                <li>Fullscreen is required during the test</li>
+                <li>Please use a stable internet connection and complete it in one sitting</li>
+                <li>Deadline: ${deadlineLabel}</li>
+              </ul>
+            </div>
+            <p style="margin: 0 0 24px;">When you’re ready, use the button below to begin:</p>
+            <p style="margin: 0 0 28px;">
+              <a href="${link}" style="display: inline-block; background: #4f46e5; color: #ffffff; text-decoration: none; font-weight: 600; padding: 14px 22px; border-radius: 10px;">Start Assessment</a>
+            </p>
+            <p style="margin: 0 0 16px; color: #4b5563;">This link expires automatically at the deadline above.</p>
+            <p style="margin: 0 0 16px; color: #4b5563;">If you experience any technical issue, you can reply to this email.</p>
+            <p style="margin: 0; color: #4b5563;">Best,<br/>NeoDym</p>
           </div>
-          <p style="margin: 0 0 24px;">When you’re ready, use the button below to begin:</p>
-          <p style="margin: 0 0 28px;">
-            <a href="${link}" style="display: inline-block; background: #4f46e5; color: #ffffff; text-decoration: none; font-weight: 600; padding: 14px 22px; border-radius: 10px;">Start Assessment</a>
-          </p>
-          <p style="margin: 0 0 16px; color: #4b5563;">This link expires automatically at the deadline above.</p>
-          <p style="margin: 0 0 16px; color: #4b5563;">If you experience any technical issue, you can reply to this email.</p>
-          <p style="margin: 0; color: #4b5563;">Best,<br/>NeoDym</p>
         </div>
-      </div>
-    `,
-  });
+      `,
+    });
 
-  return { sent: true };
+    return { sent: true };
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : 'send-failed';
+    return { sent: false, reason };
+  }
+}
+
+async function sendBulkInviteEmails(createdCandidates: Array<{ name: string; email: string; link: string; deadlineLabel: string }>) {
+  const results: Array<{ name: string; email: string; sent: boolean; reason?: string }> = [];
+  const pauseMs = 350;
+
+  for (const candidate of createdCandidates) {
+    const result = await maybeSendInviteEmail(candidate.name, candidate.email, candidate.link, candidate.deadlineLabel);
+    results.push({
+      name: candidate.name,
+      email: candidate.email,
+      ...result,
+    });
+
+    if (pauseMs > 0) {
+      await sleep(pauseMs);
+    }
+  }
+
+  return results;
 }
 
 app.get('/api/health', (_req, res) => {
@@ -599,13 +628,7 @@ app.post('/api/admin/candidates/bulk', adminAuth, async (req, res) => {
   }));
 
   const emailResults = sendEmail
-    ? await Promise.all(
-        createdCandidates.map(async (candidate) => ({
-          name: candidate.name,
-          email: candidate.email,
-          ...(await maybeSendInviteEmail(candidate.name, candidate.email, candidate.link, candidate.deadlineLabel)),
-        }))
-      )
+    ? await sendBulkInviteEmails(createdCandidates)
     : [];
 
   res.json({
